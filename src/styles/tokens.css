@@ -12,8 +12,10 @@
   --ablaq-red: #9e3b2e;
   --lamp-teal: #14655e;
   --cairo-brass: #c08a2e;
-  --aniline-light: #a78bfa;
-  --aniline-dark: #6d28d9;
+  --violet-light: #8b7bd8;
+  --violet-light-hover: #a396e3;
+  --violet-deep: #5b21b6;
+  --violet-deep-hover: #4c1d95;
 
   /* Role tokens — dark theme (default) */
   --surface-base: var(--basalt);
@@ -21,8 +23,9 @@
   --text-primary: var(--limestone);
   --text-muted: #a9a296;
   --border-default: #3a3833;
-  --signal-default: var(--aniline-light);
-  --signal-hover: #c4b5fd;
+  --signal-default: var(--violet-light);
+  --signal-hover: var(--violet-light-hover);
+  --on-signal: #241b52;
   --accent-brass: var(--cairo-brass);
 
   /* Structural tokens */
@@ -53,7 +56,8 @@
   --text-primary: var(--basalt);
   --text-muted: #5c574e;
   --border-default: #cbbfa9;
-  --signal-default: var(--aniline-dark);
-  --signal-hover: #5b21b6;
+  --signal-default: var(--violet-deep);
+  --signal-hover: var(--violet-deep-hover);
+  --on-signal: #ede4d3;
   --accent-brass: var(--cairo-brass);
 }
