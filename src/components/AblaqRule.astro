@@ -1,14 +1,14 @@
 ---
 // The signature divider: alternating hard-edged segments with exactly one
-// accent segment. Only ONE instance per screen should be given `accent`
-// (default true) — a page using more than one rule must pass `accent={false}`
-// on every extra instance so Cairo Brass never appears twice on one screen.
+// accent segment. Cairo Brass appears at most once per screen, and that
+// instance is owned by the Header — every other instance must default to
+// (or explicitly pass) `accent={false}`.
 interface Props {
   segments?: number;
   accent?: boolean;
 }
 
-const { segments = 9, accent = true } = Astro.props;
+const { segments = 9, accent = false } = Astro.props;
 const accentIndex = Math.floor(segments / 2);
 const items = Array.from({ length: segments }, (_, i) => {
   if (accent && i === accentIndex) return 'accent';

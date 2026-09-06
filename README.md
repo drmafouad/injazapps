@@ -1,7 +1,7 @@
 # InjazApps
 
-Version: 1.1.1
-Last updated: 2026-09-06 23:10 +03
+Version: 1.1.2
+Last updated: 2026-09-07 02:20 +03
 
 Marketing site for InjazApps, a mobile app studio, built with Astro and
 hand-written CSS (no Tailwind, no UI framework). This is the scaffolding and
@@ -34,8 +34,9 @@ Brand rules enforced across every component:
 - No box-shadow, blur, or gradients. Depth is a hard-edged duplicate block
   offset by a few pixels, drawn in the border colour.
 - No border-radius above 4px anywhere.
-- The brass accent colour appears at most once per screen — `AblaqRule`
-  takes an `accent` prop so only one instance per page sets it.
+- The brass accent colour appears at most once per screen. `AblaqRule`
+  defaults `accent` to `false`; the Header's instance is the site's single
+  owner of the accent and is the only place it's explicitly turned on.
 
 ## Components
 
@@ -43,18 +44,71 @@ Brand rules enforced across every component:
 divider), and `OffsetPanel` (the hard-offset depth treatment) live in
 `src/layouts` and `src/components`.
 
+## Hosting
+
+Deployment target is Cloudflare Pages. Build command `npm run build`,
+output directory `dist`. `public/_redirects` sends `www` to the apex
+domain; `public/_headers` sets baseline security headers site-wide and a
+one-year immutable cache on `/fonts/*`.
+
 ## Commands
 
 Run from the project root: `npm run dev` starts the local dev server,
 `npm run build` builds to `./dist/`, `npm run preview` serves that build
-locally, and `npm run astro check` type-checks the project.
+locally, `npm run astro check` type-checks the project, `npm run
+generate:icons` regenerates the icon set, and `npm run generate:fonts`
+regenerates the subsetted webfonts.
 
 ## Fonts
 
-Self-hosted via Fontsource: `@fontsource-variable/ibm-plex-sans` (Latin,
-variable weight) and `@fontsource/ibm-plex-sans-arabic` (Arabic; no
-variable build is published for this family, so weights 400/500/700 are
-loaded as static faces). Both are preloaded per the active locale.
+Self-hosted, subsetted copies of two Fontsource families live in
+`public/fonts/` and are declared in `src/styles/fonts.css`:
+`@fontsource-variable/ibm-plex-sans` (Latin, variable weight) and
+`@fontsource/ibm-plex-sans-arabic` (Arabic; no variable build is published
+for this family, so it ships static weights). The Fontsource packages
+themselves are devDependencies only — source material for
+`scripts/subset-fonts.mjs`, not a runtime import.
+
+IBM Plex Sans Arabic ships static 400/700 weights only in this build (500
+is unused across the codebase and is dropped). There is no 600 — a rule
+requesting weight 600 on the Arabic face would faux-bold and damage letter
+joins, so anything wanting that emphasis goes through the
+`--font-weight-wordmark` token (`src/styles/tokens.css`): 600 under the
+Latin face, 700 under `html[lang="ar"]`.
+
+Each `@font-face` in `fonts.css` declares `unicode-range` as the exact set
+of codepoints actually embedded (not the full Unicode block) — a character
+outside that set falls through to the next font in the stack instead of
+rendering a missing-glyph box. This also keeps the Arabic face from ever
+matching Latin text (e.g. "OwlMD", "English") the way importing
+Fontsource's combined per-weight CSS used to, which was downloading a
+second, redundant Latin subset from the Arabic package. One weight per
+locale is preloaded above the fold in `BaseLayout`.
+
+Run `npm run generate:fonts` to regenerate the subsets after copy changes
+(requires Python fonttools on PATH: `pip install fonttools brotli`). It
+scans `src/lib/nav.ts` and every page's title/description/body copy for
+the character set, then subsets via `pyftsubset`.
+
+**Font payload, `/` vs `/ar/`** (sum of woff2 files actually fetched, per
+the font-matching rules above; measured from file sizes, not a live
+network trace — no browser instrumentation was available for this pass):
+
+| Page  | Before   | After   | Change |
+| ----- | -------- | ------- | ------ |
+| `/`   | 45,712 B | 16,904 B | −63% |
+| `/ar/` | 152,004 B | 31,932 B | −79% |
+
+Before: `/` downloaded the unsubsetted Latin variable font (45,712 B).
+`/ar/` downloaded that same file too (it was preloaded unconditionally on
+every page), plus the Arabic package's Arabic-400 subset (42,848 B), plus
+its own Latin-400 subset (19,164 B, matched ahead of the real Latin font
+for Latin text under the old unrestricted unicode-range), plus its
+Arabic-700 subset (44,280 B, matched as the nearest available weight to
+the header wordmark's requested 600). After: `/` downloads only the
+subsetted Latin file (16,904 B); `/ar/` downloads that plus the subsetted
+Arabic 400 and 700 faces (7,480 B + 7,548 B), with the redundant Arabic
+Latin-subset download eliminated by the unicode-range fix.
 
 ## SEO
 
@@ -69,7 +123,10 @@ emits Open Graph / Twitter card tags via `BaseLayout`, falling back to
 
 The favicon, manifest icons, and default OG image are generated from the
 existing mark (not redrawn) by `scripts/generate-icons.mjs`, which reads
-`assets/injazapps-icon-512.png` — see the comment at the top of that script
-for why it doesn't use the 48px `public/injazapps-icon-web-48r.png` copy.
-Re-run it with `node scripts/generate-icons.mjs` any time the source art
-changes.
+`assets/injazapps-icon-512.png` — the full-bleed 512x512 square mark (hard
+joint at x=256, no corner radius, no transparency). It does not use the
+48px `public/injazapps-icon-web-48r.png` copy: that variant has real
+transparent corners and would double-round under Apple/Android icon masks.
+The 48r variant remains the source for the in-page Header logo only.
+Re-run icon generation with `npm run generate:icons` any time the source
+art changes.

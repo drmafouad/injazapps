@@ -3,6 +3,7 @@ import { getRelativeLocaleUrl } from 'astro:i18n';
 import type { Locale } from '../lib/i18n';
 import { otherLocale } from '../lib/i18n';
 import { navCopy, routes } from '../lib/nav';
+import AblaqRule from './AblaqRule.astro';
 
 interface Props {
   locale: Locale;
@@ -48,6 +49,7 @@ const langSwitchHref = getRelativeLocaleUrl(target, path);
       </button>
     </div>
   </div>
+  <AblaqRule accent={true} />
 </header>
 
 <style>
@@ -71,7 +73,7 @@ const langSwitchHref = getRelativeLocaleUrl(target, path);
     display: inline-flex;
     align-items: center;
     gap: var(--space-xs);
-    font-weight: 600;
+    font-weight: var(--font-weight-wordmark);
     font-size: var(--text-base);
     text-decoration: none;
     color: var(--text-primary);

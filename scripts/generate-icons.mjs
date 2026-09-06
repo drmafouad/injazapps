@@ -1,12 +1,13 @@
 // Regenerates the favicon/manifest/OG icon set from the existing InjazApps
 // mark. Run with: node scripts/generate-icons.mjs
 //
-// Source note: the addendum names public/injazapps-icon-web-48r.png as the
-// source, but that file is only 48x48px (it was itself downsampled from the
-// master). Upscaling a 48px raster to 512px would visibly blur the hard
-// edges the brand depends on, so this script reads the 512px master at
-// assets/injazapps-icon-512.png instead — same artwork, not redrawn, just
-// the higher-resolution copy of it.
+// Source note: the generation source is assets/injazapps-icon-512.png, the
+// full-bleed 512x512 square mark — hard joint at x=256, no corner radius,
+// no transparency. It is NOT public/injazapps-icon-web-48r.png: that 48px
+// variant has real transparent corners, and compositing it into masked
+// shapes (Apple touch icon, Android maskable icon) would double-round the
+// corners under the platform's own mask. The 48r variant stays the source
+// for the in-page Header logo only.
 import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';

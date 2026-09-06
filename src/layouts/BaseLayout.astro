@@ -1,17 +1,11 @@
 ---
 import { getRelativeLocaleUrl } from 'astro:i18n';
 import '../styles/global.css';
-import ibmPlexSansLatinWoff2 from '@fontsource-variable/ibm-plex-sans/files/ibm-plex-sans-latin-wght-normal.woff2?url';
-import ibmPlexArabic400Woff2 from '@fontsource/ibm-plex-sans-arabic/files/ibm-plex-sans-arabic-arabic-400-normal.woff2?url';
-import '@fontsource-variable/ibm-plex-sans/index.css';
-import '@fontsource/ibm-plex-sans-arabic/400.css';
-import '@fontsource/ibm-plex-sans-arabic/500.css';
-import '@fontsource/ibm-plex-sans-arabic/700.css';
+import '../styles/fonts.css';
 import { locales, dirFor, type Locale } from '../lib/i18n';
 import { navCopy } from '../lib/nav';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
-import AblaqRule from '../components/AblaqRule.astro';
 
 interface Props {
   locale: Locale;
@@ -48,10 +42,22 @@ const ogLocaleAlternates = locales.filter((loc) => loc !== locale).map((loc) => 
     <meta name="description" content={description} />
     <link rel="canonical" href={canonicalUrl} />
 
-    <link rel="preload" as="font" type="font/woff2" href={ibmPlexSansLatinWoff2} crossorigin />
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      href="/fonts/ibm-plex-sans-latin-subset.woff2"
+      crossorigin
+    />
     {
       locale === 'ar' && (
-        <link rel="preload" as="font" type="font/woff2" href={ibmPlexArabic400Woff2} crossorigin />
+        <link
+          rel="preload"
+          as="font"
+          type="font/woff2"
+          href="/fonts/ibm-plex-sans-arabic-400-subset.woff2"
+          crossorigin
+        />
       )
     }
 
@@ -103,7 +109,6 @@ const ogLocaleAlternates = locales.filter((loc) => loc !== locale).map((loc) => 
   <body>
     <a href="#main-content" class="visually-hidden">{t.skipToContent}</a>
     <Header locale={locale} path={path} />
-    <AblaqRule />
     <main id="main-content">
       <slot />
     </main>

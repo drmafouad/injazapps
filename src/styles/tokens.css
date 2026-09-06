@@ -42,6 +42,11 @@
   --font-latin: 'IBM Plex Sans Variable', system-ui, sans-serif;
   --font-arabic: 'IBM Plex Sans Arabic', var(--font-latin);
 
+  /* IBM Plex Sans Arabic ships static 400/500/700 only — no 600, which
+     would trigger faux bold and damage Arabic letter joins. Anything
+     wanting a "600-ish" emphasis weight must go through this token. */
+  --font-weight-wordmark: 600;
+
   /* Fluid type scale, five steps */
   --text-sm: clamp(0.8125rem, 0.78rem + 0.2vw, 0.9375rem);
   --text-base: clamp(1rem, 0.95rem + 0.3vw, 1.125rem);
@@ -60,4 +65,10 @@
   --signal-hover: var(--violet-deep-hover);
   --on-signal: #ede4d3;
   --accent-brass: var(--cairo-brass);
+}
+
+html[lang='ar'] {
+  /* 600 isn't a real static weight in IBM Plex Sans Arabic — 700 is the
+     nearest permitted weight without faux-bolding. */
+  --font-weight-wordmark: 700;
 }
