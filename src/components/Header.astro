@@ -1,0 +1,164 @@
+---
+import { getRelativeLocaleUrl } from 'astro:i18n';
+import type { Locale } from '../lib/i18n';
+import { otherLocale } from '../lib/i18n';
+import { navCopy, routes } from '../lib/nav';
+
+interface Props {
+  locale: Locale;
+  path: string;
+}
+
+const { locale, path } = Astro.props;
+const t = navCopy[locale];
+const target = otherLocale(locale);
+
+const href = (routePath: string) => getRelativeLocaleUrl(locale, routePath);
+const langSwitchHref = getRelativeLocaleUrl(target, path);
+---
+
+<header class="site-header">
+  <div class="site-header__inner">
+    <a href={href(routes.home)} class="site-header__mark">
+      <img src="/injazapps-icon-web-48r.png" width="24" height="24" alt="" />
+      <span>{t.home}</span>
+    </a>
+
+    <nav class="site-header__nav" aria-label="Primary">
+      <ul>
+        <li><a href={href(routes.owlmd)}>{t.owlmd}</a></li>
+        <li><a href={href(routes.mizan)}>{t.mizan}</a></li>
+        <li><a href={href(routes.sada)}>{t.sada}</a></li>
+        <li><a href={href(routes.about)}>{t.about}</a></li>
+        <li><a href={href(routes.support)}>{t.support}</a></li>
+      </ul>
+    </nav>
+
+    <div class="site-header__controls">
+      <a href={langSwitchHref} class="site-header__lang" hreflang={target} lang={target}>
+        {t.switchLanguage}
+      </a>
+      <button
+        type="button"
+        id="theme-toggle"
+        class="site-header__theme-toggle"
+        aria-label={t.toggleTheme}
+      >
+        <span class="site-header__theme-icon" aria-hidden="true"></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    border-block-end: 1px solid var(--border-default);
+  }
+
+  .site-header__inner {
+    max-inline-size: 72rem;
+    margin-inline: auto;
+    padding-inline: var(--space-md);
+    padding-block: var(--space-sm);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-md);
+    flex-wrap: wrap;
+  }
+
+  .site-header__mark {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    font-weight: 600;
+    font-size: var(--text-base);
+    text-decoration: none;
+    color: var(--text-primary);
+  }
+
+  .site-header__mark img {
+    inline-size: 24px;
+    block-size: 24px;
+  }
+
+  .site-header__nav ul {
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding-inline-start: 0;
+    margin-inline-start: auto;
+  }
+
+  .site-header__nav a {
+    text-decoration: none;
+    color: var(--text-primary);
+    font-size: var(--text-sm);
+  }
+
+  .site-header__nav a:hover,
+  .site-header__nav a:focus-visible {
+    color: var(--signal-default);
+  }
+
+  .site-header__controls {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+
+  .site-header__lang {
+    font-size: var(--text-sm);
+    text-decoration: none;
+    color: var(--text-muted);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-max);
+    padding-inline: var(--space-sm);
+    padding-block: var(--space-2xs);
+  }
+
+  .site-header__lang:hover,
+  .site-header__lang:focus-visible {
+    color: var(--signal-default);
+    border-color: var(--signal-default);
+  }
+
+  .site-header__theme-toggle {
+    inline-size: 2rem;
+    block-size: 2rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-max);
+  }
+
+  .site-header__theme-icon {
+    inline-size: 0.9rem;
+    block-size: 0.9rem;
+    background-color: var(--text-primary);
+  }
+</style>
+
+<script>
+  const STORAGE_KEY = 'injazapps-theme';
+
+  function currentTheme(): 'light' | 'dark' {
+    return document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
+  }
+
+  function setTheme(theme: 'light' | 'dark') {
+    document.documentElement.dataset.theme = theme;
+    try {
+      localStorage.setItem(STORAGE_KEY, theme);
+    } catch {
+      // storage unavailable, theme still applies for this page view
+    }
+  }
+
+  const toggle = document.getElementById('theme-toggle');
+  toggle?.addEventListener('click', () => {
+    setTheme(currentTheme() === 'light' ? 'dark' : 'light');
+  });
+</script>

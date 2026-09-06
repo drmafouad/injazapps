@@ -1,0 +1,90 @@
+---
+import { getRelativeLocaleUrl } from 'astro:i18n';
+import type { Locale } from '../lib/i18n';
+import { navCopy, routes } from '../lib/nav';
+import AblaqRule from './AblaqRule.astro';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const t = navCopy[locale];
+const href = (routePath: string) => getRelativeLocaleUrl(locale, routePath);
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <AblaqRule segments={11} accent={false} />
+  <div class="site-footer__inner">
+    <nav class="site-footer__group" aria-label={t.about}>
+      <p class="site-footer__heading">{t.about}</p>
+      <ul>
+        <li><a href={href(routes.about)}>{t.about}</a></li>
+        <li><a href={href(routes.support)}>{t.support}</a></li>
+      </ul>
+    </nav>
+
+    <nav class="site-footer__group" aria-label={t.legal}>
+      <p class="site-footer__heading">{t.legal}</p>
+      <ul>
+        <li><a href={href(routes.terms)}>{t.terms}</a></li>
+        <li><a href={href(routes.privacyOwlmd)}>{t.privacyOwlmd}</a></li>
+        <li><a href={href(routes.privacyMizan)}>{t.privacyMizan}</a></li>
+        <li><a href={href(routes.privacySada)}>{t.privacySada}</a></li>
+      </ul>
+    </nav>
+  </div>
+  <p class="site-footer__legal">&copy; {year} {t.home}</p>
+</footer>
+
+<style>
+  .site-footer {
+    margin-block-start: var(--space-xl);
+    padding-block-end: var(--space-lg);
+  }
+
+  .site-footer__inner {
+    max-inline-size: 72rem;
+    margin-inline: auto;
+    padding-inline: var(--space-md);
+    padding-block-start: var(--space-lg);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xl);
+  }
+
+  .site-footer__heading {
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+    margin-block-end: var(--space-xs);
+  }
+
+  .site-footer__group ul {
+    list-style: none;
+    padding-inline-start: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2xs);
+  }
+
+  .site-footer__group a {
+    text-decoration: none;
+    color: var(--text-primary);
+    font-size: var(--text-sm);
+  }
+
+  .site-footer__group a:hover,
+  .site-footer__group a:focus-visible {
+    color: var(--signal-default);
+  }
+
+  .site-footer__legal {
+    max-inline-size: 72rem;
+    margin-inline: auto;
+    padding-inline: var(--space-md);
+    padding-block-start: var(--space-lg);
+    color: var(--text-muted);
+    font-size: var(--text-sm);
+  }
+</style>

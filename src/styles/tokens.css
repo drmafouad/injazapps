@@ -1,0 +1,59 @@
+/*
+  InjazApps design tokens.
+  Dark-first: :root is the dark theme. [data-theme="light"] overrides it.
+  Tokens are named by role, never by colour. The raw palette below is
+  private — nothing outside this file should reference it directly.
+*/
+
+:root {
+  /* Raw palette (private) */
+  --limestone: #ede4d3;
+  --basalt: #1b1a17;
+  --ablaq-red: #9e3b2e;
+  --lamp-teal: #14655e;
+  --cairo-brass: #c08a2e;
+  --aniline-light: #a78bfa;
+  --aniline-dark: #6d28d9;
+
+  /* Role tokens — dark theme (default) */
+  --surface-base: var(--basalt);
+  --surface-raised: #24231f;
+  --text-primary: var(--limestone);
+  --text-muted: #a9a296;
+  --border-default: #3a3833;
+  --signal-default: var(--aniline-light);
+  --signal-hover: #c4b5fd;
+  --accent-brass: var(--cairo-brass);
+
+  /* Structural tokens */
+  --offset-depth: 6px;
+  --radius-max: 4px;
+
+  --space-2xs: 0.25rem;
+  --space-xs: 0.5rem;
+  --space-sm: 0.75rem;
+  --space-md: 1.25rem;
+  --space-lg: 2rem;
+  --space-xl: 3rem;
+
+  --font-latin: 'IBM Plex Sans Variable', system-ui, sans-serif;
+  --font-arabic: 'IBM Plex Sans Arabic', var(--font-latin);
+
+  /* Fluid type scale, five steps */
+  --text-sm: clamp(0.8125rem, 0.78rem + 0.2vw, 0.9375rem);
+  --text-base: clamp(1rem, 0.95rem + 0.3vw, 1.125rem);
+  --text-lg: clamp(1.25rem, 1.15rem + 0.6vw, 1.625rem);
+  --text-xl: clamp(1.75rem, 1.5rem + 1.2vw, 2.5rem);
+  --text-display: clamp(2.5rem, 2rem + 2.5vw, 4rem);
+}
+
+[data-theme='light'] {
+  --surface-base: var(--limestone);
+  --surface-raised: #f6f0e4;
+  --text-primary: var(--basalt);
+  --text-muted: #5c574e;
+  --border-default: #cbbfa9;
+  --signal-default: var(--aniline-dark);
+  --signal-hover: #5b21b6;
+  --accent-brass: var(--cairo-brass);
+}

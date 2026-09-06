@@ -1,0 +1,44 @@
+---
+// Hard-edged depth treatment: a duplicate block drawn in --border-default,
+// offset toward the block-end/inline-end by --offset-depth. No blur, no
+// shadow — the offset itself carries the depth.
+interface Props {
+  as?: 'div' | 'section' | 'article';
+}
+
+const { as: Tag = 'div' } = Astro.props;
+---
+
+<Tag class="offset-panel">
+  <div class="offset-panel__body">
+    <slot />
+  </div>
+</Tag>
+
+<style>
+  .offset-panel {
+    position: relative;
+    display: block;
+  }
+
+  .offset-panel::before {
+    content: '';
+    position: absolute;
+    inset-block-start: var(--offset-depth);
+    inset-inline-start: var(--offset-depth);
+    inset-block-end: calc(-1 * var(--offset-depth));
+    inset-inline-end: calc(-1 * var(--offset-depth));
+    background-color: var(--border-default);
+    z-index: 0;
+  }
+
+  .offset-panel__body {
+    position: relative;
+    z-index: 1;
+    background-color: var(--surface-raised);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-max);
+    padding-block: var(--space-md);
+    padding-inline: var(--space-md);
+  }
+</style>

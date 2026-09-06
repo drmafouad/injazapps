@@ -1,0 +1,81 @@
+---
+import { getRelativeLocaleUrl } from 'astro:i18n';
+import '../styles/global.css';
+import ibmPlexSansLatinWoff2 from '@fontsource-variable/ibm-plex-sans/files/ibm-plex-sans-latin-wght-normal.woff2?url';
+import ibmPlexArabic400Woff2 from '@fontsource/ibm-plex-sans-arabic/files/ibm-plex-sans-arabic-arabic-400-normal.woff2?url';
+import '@fontsource-variable/ibm-plex-sans/index.css';
+import '@fontsource/ibm-plex-sans-arabic/400.css';
+import '@fontsource/ibm-plex-sans-arabic/500.css';
+import '@fontsource/ibm-plex-sans-arabic/700.css';
+import { locales, dirFor, type Locale } from '../lib/i18n';
+import { navCopy } from '../lib/nav';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import AblaqRule from '../components/AblaqRule.astro';
+
+interface Props {
+  locale: Locale;
+  path: string;
+  title: string;
+}
+
+const { locale, path, title } = Astro.props;
+const dir = dirFor(locale);
+const t = navCopy[locale];
+
+const alternates = locales.map((loc) => ({
+  locale: loc,
+  href: getRelativeLocaleUrl(loc, path),
+}));
+const defaultHref = getRelativeLocaleUrl('en', path);
+---
+
+<html lang={locale} dir={dir} data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+
+    <link rel="preload" as="font" type="font/woff2" href={ibmPlexSansLatinWoff2} crossorigin />
+    {
+      locale === 'ar' && (
+        <link rel="preload" as="font" type="font/woff2" href={ibmPlexArabic400Woff2} crossorigin />
+      )
+    }
+
+    {
+      alternates.map((alt) => (
+        <link rel="alternate" hreflang={alt.locale} href={alt.href} />
+      ))
+    }
+    <link rel="alternate" hreflang="x-default" href={defaultHref} />
+
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+
+    <script is:inline>
+      (function () {
+        try {
+          var stored = localStorage.getItem('injazapps-theme');
+          var theme =
+            stored === 'light' || stored === 'dark'
+              ? stored
+              : window.matchMedia('(prefers-color-scheme: light)').matches
+                ? 'light'
+                : 'dark';
+          document.documentElement.dataset.theme = theme;
+        } catch (e) {
+          document.documentElement.dataset.theme = 'dark';
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <a href="#main-content" class="visually-hidden">{t.skipToContent}</a>
+    <Header locale={locale} path={path} />
+    <AblaqRule />
+    <main id="main-content">
+      <slot />
+    </main>
+    <Footer locale={locale} />
+  </body>
+</html>

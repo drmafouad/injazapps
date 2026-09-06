@@ -1,0 +1,47 @@
+---
+// The signature divider: alternating hard-edged segments with exactly one
+// accent segment. Only ONE instance per screen should be given `accent`
+// (default true) — a page using more than one rule must pass `accent={false}`
+// on every extra instance so Cairo Brass never appears twice on one screen.
+interface Props {
+  segments?: number;
+  accent?: boolean;
+}
+
+const { segments = 9, accent = true } = Astro.props;
+const accentIndex = Math.floor(segments / 2);
+const items = Array.from({ length: segments }, (_, i) => {
+  if (accent && i === accentIndex) return 'accent';
+  return i % 2 === 0 ? 'primary' : 'muted';
+});
+---
+
+<div class="ablaq-rule" role="separator" aria-hidden="true">
+  {items.map((kind) => <span class={`segment segment--${kind}`}></span>)}
+</div>
+
+<style>
+  .ablaq-rule {
+    display: flex;
+    inline-size: 100%;
+    block-size: 3px;
+    gap: 0;
+  }
+
+  .segment {
+    flex: 1 1 0;
+    block-size: 100%;
+  }
+
+  .segment--primary {
+    background-color: var(--text-primary);
+  }
+
+  .segment--muted {
+    background-color: var(--border-default);
+  }
+
+  .segment--accent {
+    background-color: var(--accent-brass);
+  }
+</style>
