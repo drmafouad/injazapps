@@ -1,7 +1,7 @@
 # InjazApps
 
-Version: 1.1.2
-Last updated: 2026-09-07 02:20 +03
+Version: 1.1.3
+Last updated: 2026-09-07 02:50 +03
 
 Marketing site for InjazApps, a mobile app studio, built with Astro and
 hand-written CSS (no Tailwind, no UI framework). This is the scaffolding and
@@ -49,25 +49,38 @@ divider), and `OffsetPanel` (the hard-offset depth treatment) live in
 Deployment target is Cloudflare Pages. Build command `npm run build`,
 output directory `dist`. `public/_redirects` sends `www` to the apex
 domain; `public/_headers` sets baseline security headers site-wide and a
-one-year immutable cache on `/fonts/*`.
+one-year immutable cache on `/fonts/*`. Node version is pinned to 22 via
+`.nvmrc` and `engines.node` in `package.json` so local, CI, and the
+Cloudflare build agree; `package-lock.json` should be regenerated with npm
+as shipped by that Node version if it ever drifts (a lockfile written by a
+different npm major version can omit optional transitive dependencies that
+`npm ci` then rejects as out of sync).
 
 ## Commands
 
 Run from the project root: `npm run dev` starts the local dev server,
 `npm run build` builds to `./dist/`, `npm run preview` serves that build
-locally, `npm run astro check` type-checks the project, `npm run
-generate:icons` regenerates the icon set, and `npm run generate:fonts`
-regenerates the subsetted webfonts.
+locally, and `npm run astro check` type-checks the project.
+
+`npm run icons:generate` and `npm run fonts:subset` are developer-machine-only
+maintenance scripts — see Icons and Fonts below. Neither one runs as part of
+`npm run build` or any install hook; the build only ever runs `astro build`,
+and its full dependency tree is plain Node/npm packages (no Python, no
+system binaries). `fonts:subset` requires Python fonttools
+(`pip install fonttools brotli`) and is never invoked on the Cloudflare
+Pages build machine, which has Node and npm only.
 
 ## Fonts
 
 Self-hosted, subsetted copies of two Fontsource families live in
-`public/fonts/` and are declared in `src/styles/fonts.css`:
-`@fontsource-variable/ibm-plex-sans` (Latin, variable weight) and
-`@fontsource/ibm-plex-sans-arabic` (Arabic; no variable build is published
-for this family, so it ships static weights). The Fontsource packages
-themselves are devDependencies only — source material for
-`scripts/subset-fonts.mjs`, not a runtime import.
+`public/fonts/` (committed to the repo, not gitignored) and are declared in
+`src/styles/fonts.css`: `@fontsource-variable/ibm-plex-sans` (Latin,
+variable weight) and `@fontsource/ibm-plex-sans-arabic` (Arabic; no
+variable build is published for this family, so it ships static weights).
+The Fontsource packages, plus `sharp` and `png-to-ico` (used only by
+`scripts/subset-fonts.mjs` and `scripts/generate-icons.mjs`), are
+devDependencies only — source material for those two scripts, never a
+runtime import and never installed for production.
 
 IBM Plex Sans Arabic ships static 400/700 weights only in this build (500
 is unused across the codebase and is dropped). There is no 600 — a rule
@@ -85,10 +98,35 @@ Fontsource's combined per-weight CSS used to, which was downloading a
 second, redundant Latin subset from the Arabic package. One weight per
 locale is preloaded above the fold in `BaseLayout`.
 
-Run `npm run generate:fonts` to regenerate the subsets after copy changes
-(requires Python fonttools on PATH: `pip install fonttools brotli`). It
-scans `src/lib/nav.ts` and every page's title/description/body copy for
-the character set, then subsets via `pyftsubset`.
+**⚠️ Subset fragility:** because `unicode-range` is pinned to the exact
+codepoints present in today's copy, any *new* character added to site copy
+(a new word, a new page, a diacritic that wasn't there before) is not in
+the subset and will silently fall back to the next font in the stack —
+usually a system font, not a missing-glyph box, so it degrades quietly
+rather than breaking, but it will look off-brand. **Whoever edits copy
+must run `npm run fonts:subset` afterward and commit the regenerated files
+in `public/fonts/` and the updated `unicode-range` values in
+`src/styles/fonts.css`.**
+
+`npm run fonts:subset` (`scripts/subset-fonts.mjs`) regenerates those
+subsets. It requires Python fonttools on PATH
+(`pip install fonttools brotli`) to run `pyftsubset` — this is a
+developer-machine tool only; it is never run during `npm run build` and
+the Cloudflare Pages build machine does not have Python installed. The
+script scans `src/lib/nav.ts` and every page's title/description/body copy
+for the character set, subsets via `pyftsubset` with `--layout-features=*`
+(keep every OpenType layout feature the source font defines), and prints
+the `unicode-range` values to paste into `fonts.css`.
+
+The Arabic subset was verified to retain `GSUB`/`GPOS` and the shaping
+features IBM Plex Sans Arabic actually ships — `init`, `medi`, `fina`,
+`calt`, `rlig` (GSUB) and `kern`, `mark`, `mkmk` (GPOS). The source font has
+no separate `isol` or `liga` feature (isolated forms are the default cmap
+glyphs, and lam-alef is a *required* ligature under `rlig`, not `liga`) —
+that's true of the unsubsetted font too, not something subsetting removed.
+The lam-alef ligature rule itself (medial/initial lam + final alef, for
+every alef variant in the current subset — ا, إ, آ) was confirmed present
+in the subsetted glyph tables.
 
 **Font payload, `/` vs `/ar/`** (sum of woff2 files actually fetched, per
 the font-matching rules above; measured from file sizes, not a live
@@ -128,5 +166,8 @@ joint at x=256, no corner radius, no transparency). It does not use the
 48px `public/injazapps-icon-web-48r.png` copy: that variant has real
 transparent corners and would double-round under Apple/Android icon masks.
 The 48r variant remains the source for the in-page Header logo only.
-Re-run icon generation with `npm run generate:icons` any time the source
-art changes.
+
+Like the font subset, this is a developer-machine-only script: run
+`npm run icons:generate` any time the source art changes and commit the
+regenerated PNGs/ICO in `public/` (they are checked in, not gitignored). It
+uses `sharp`/`png-to-ico` and is never invoked by `npm run build`.

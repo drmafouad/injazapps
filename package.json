@@ -1,17 +1,17 @@
 {
   "name": "injazapps",
   "type": "module",
-  "version": "1.1.2",
+  "version": "1.1.3",
   "engines": {
-    "node": ">=22.12.0"
+    "node": ">=22"
   },
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "generate:icons": "node scripts/generate-icons.mjs",
-    "generate:fonts": "node --experimental-strip-types scripts/subset-fonts.mjs"
+    "icons:generate": "node scripts/generate-icons.mjs",
+    "fonts:subset": "node --experimental-strip-types scripts/subset-fonts.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",

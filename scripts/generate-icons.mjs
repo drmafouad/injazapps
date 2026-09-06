@@ -1,5 +1,8 @@
 // Regenerates the favicon/manifest/OG icon set from the existing InjazApps
-// mark. Run with: node scripts/generate-icons.mjs
+// mark. Run with: npm run icons:generate
+//
+// Developer-machine-only: never run as part of `npm run build`. Output
+// (public/*.png, public/favicon.ico) is committed to the repo instead.
 //
 // Source note: the generation source is assets/injazapps-icon-512.png, the
 // full-bleed 512x512 square mark — hard joint at x=256, no corner radius,

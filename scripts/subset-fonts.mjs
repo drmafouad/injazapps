@@ -1,8 +1,11 @@
 // Regenerates the self-hosted, subsetted webfonts in public/fonts/ from the
-// Fontsource master packages. Run with: npm run generate:fonts
+// Fontsource master packages. Run with: npm run fonts:subset
 //
 // Requires Python fonttools on PATH (`pip install fonttools brotli`) — this
-// only runs at authoring time, it is not a build dependency.
+// is a developer-machine-only tool. It must NEVER run as part of
+// `npm run build`: the Cloudflare Pages build machine has Node and npm
+// only, no Python. Its output (public/fonts/*.woff2 and the unicode-range
+// values below) is committed to the repo instead.
 //
 // Why subset at all: IBM Plex Sans Arabic ships static 400/500/700 only
 // (no 600 — see --font-weight-wordmark in tokens.css), and importing the
