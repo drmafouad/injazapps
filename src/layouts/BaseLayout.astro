@@ -17,9 +17,11 @@ interface Props {
   locale: Locale;
   path: string;
   title: string;
+  description: string;
+  ogImage?: string;
 }
 
-const { locale, path, title } = Astro.props;
+const { locale, path, title, description, ogImage = '/og-default.png' } = Astro.props;
 const dir = dirFor(locale);
 const t = navCopy[locale];
 
@@ -28,6 +30,14 @@ const alternates = locales.map((loc) => ({
   href: getRelativeLocaleUrl(loc, path),
 }));
 const defaultHref = getRelativeLocaleUrl('en', path);
+
+const canonicalHref = getRelativeLocaleUrl(locale, path);
+const canonicalUrl = new URL(canonicalHref, Astro.site);
+const ogImageUrl = new URL(ogImage, Astro.site);
+
+const ogLocaleMap: Record<Locale, string> = { en: 'en_US', ar: 'ar_AR' };
+const ogLocale = ogLocaleMap[locale];
+const ogLocaleAlternates = locales.filter((loc) => loc !== locale).map((loc) => ogLocaleMap[loc]);
 ---
 
 <html lang={locale} dir={dir} data-theme="dark">
@@ -35,6 +45,8 @@ const defaultHref = getRelativeLocaleUrl('en', path);
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalUrl} />
 
     <link rel="preload" as="font" type="font/woff2" href={ibmPlexSansLatinWoff2} crossorigin />
     {
@@ -50,7 +62,26 @@ const defaultHref = getRelativeLocaleUrl('en', path);
     }
     <link rel="alternate" hreflang="x-default" href={defaultHref} />
 
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="InjazApps" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:image" content={ogImageUrl} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content={ogLocale} />
+    {ogLocaleAlternates.map((alt) => <meta property="og:locale:alternate" content={alt} />)}
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImageUrl} />
+
+    <meta name="theme-color" content="#1B1A17" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
     <script is:inline>
       (function () {

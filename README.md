@@ -1,6 +1,6 @@
 # InjazApps
 
-Version: 1.0.0
+Version: 1.1.0
 Last updated: 2026-09-06
 
 Marketing site for InjazApps, a mobile app studio, built with Astro and
@@ -56,9 +56,20 @@ variable weight) and `@fontsource/ibm-plex-sans-arabic` (Arabic; no
 variable build is published for this family, so weights 400/500/700 are
 loaded as static faces). Both are preloaded per the active locale.
 
-## Known follow-ups
+## SEO
 
-- `astro.config.mjs` sets a placeholder `site` value (`injazapps.com`) for
-  absolute-URL generation — update it once the real domain is confirmed.
-- The favicon set is a placeholder structure only; see
-  `public/favicons/README.md`.
+Canonical is the apex domain (`https://injazapps.com`, no `www`); Cloudflare
+Pages redirects `www` to it via `public/_redirects`. `@astrojs/sitemap` is
+configured with the `en`/`ar` locale map so `sitemap-index.xml` carries
+hreflang alternates for every route. Every page sets a description and
+emits Open Graph / Twitter card tags via `BaseLayout`, falling back to
+`/og-default.png` when a page doesn't pass its own `ogImage`.
+
+## Icons
+
+The favicon, manifest icons, and default OG image are generated from the
+existing mark (not redrawn) by `scripts/generate-icons.mjs`, which reads
+`assets/injazapps-icon-512.png` — see the comment at the top of that script
+for why it doesn't use the 48px `public/injazapps-icon-web-48r.png` copy.
+Re-run it with `node scripts/generate-icons.mjs` any time the source art
+changes.
