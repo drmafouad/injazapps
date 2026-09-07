@@ -1,0 +1,21 @@
+---
+import { getRelativeLocaleUrl } from 'astro:i18n';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import OffsetPanel from '../../components/OffsetPanel.astro';
+import { routes } from '../../lib/nav';
+
+const homeHref = getRelativeLocaleUrl('ar', routes.home);
+---
+
+<BaseLayout
+  locale="ar"
+  path="/404"
+  title="الصفحة غير موجودة — إنجاز آبس"
+  description="الصفحة غير موجودة."
+>
+  <OffsetPanel>
+    <h1>الصفحة غير موجودة</h1>
+    <p>هذه الصفحة غير موجودة.</p>
+    <a href={homeHref}>العودة إلى الصفحة الرئيسية</a>
+  </OffsetPanel>
+</BaseLayout>

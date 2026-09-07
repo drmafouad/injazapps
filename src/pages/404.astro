@@ -1,0 +1,21 @@
+---
+import { getRelativeLocaleUrl } from 'astro:i18n';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import OffsetPanel from '../components/OffsetPanel.astro';
+import { routes } from '../lib/nav';
+
+const homeHref = getRelativeLocaleUrl('en', routes.home);
+---
+
+<BaseLayout
+  locale="en"
+  path="/404"
+  title="Page not found — InjazApps"
+  description="Page not found."
+>
+  <OffsetPanel>
+    <h1>Page not found</h1>
+    <p>That page isn't here.</p>
+    <a href={homeHref}>Go to the home page</a>
+  </OffsetPanel>
+</BaseLayout>

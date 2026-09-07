@@ -1,7 +1,7 @@
 # InjazApps
 
-Version: 1.1.6
-Last updated: 2026-09-07 03:45 +03
+Version: 1.1.7
+Last updated: 2026-09-07 13:05 +03
 
 Marketing site for InjazApps, a mobile app studio, built with Astro and
 hand-written CSS (no Tailwind, no UI framework). The home page (`/` and
@@ -106,11 +106,26 @@ locally, and `npm run astro check` type-checks the project.
 
 `npm run icons:generate` and `npm run fonts:subset` are developer-machine-only
 maintenance scripts — see Icons and Fonts below. Neither one runs as part of
-`npm run build` or any install hook; the build only ever runs `astro build`,
-and its full dependency tree is plain Node/npm packages (no Python, no
-system binaries). `fonts:subset` requires Python fonttools
-(`pip install fonttools brotli`) and is never invoked on the Cloudflare
-Pages build machine, which has Node and npm only.
+`npm run build` or any install hook; the build only runs `astro build` plus
+one automatic `postbuild` step (`scripts/copy-locale-404s.mjs`, plain
+Node — see 404 pages below), and the full dependency tree for both is
+plain Node/npm packages (no Python, no system binaries). `fonts:subset`
+requires Python fonttools (`pip install fonttools brotli`) and is never
+invoked on the Cloudflare build machine, which has Node and npm only.
+
+## 404 pages
+
+`src/pages/404.astro` and `src/pages/ar/404.astro` are real pages (not
+generated), so they get the same Header/Footer chrome, brass-accent rule,
+and font handling as everything else. Astro only special-cases the
+site-root `404.astro` to build to a bare `/404.html`; a locale-prefixed one
+builds like any other route (`/ar/404/index.html`). Since Cloudflare's
+static-assets `not_found_handling: "404-page"` walks up the directory tree
+looking for a literal `404.html`, an Arabic 404 that only exists at
+`/ar/404/` would never actually be served — a broken link under `/ar/*`
+would silently fall back to the English page. The `postbuild` script
+copies each non-default locale's built 404 page to a sibling `404.html`
+to fix that.
 
 ## Fonts
 
@@ -156,10 +171,14 @@ subsets. It requires Python fonttools on PATH
 developer-machine tool only; it is never run during `npm run build` and
 the Cloudflare build machine does not have Python installed. The script
 scans `src/lib/nav.ts`, `src/lib/home.ts`, every `src/content/apps/*.json`
-entry, and every page's title/description/body copy for the character
-set, subsets via `pyftsubset` with `--layout-features=*` (keep every
-OpenType layout feature the source font defines), and prints the
-`unicode-range` values to paste into `fonts.css`.
+entry, and every `.astro` file under `src/pages` and `src/components` —
+both their text-bearing attributes (`title`, `description`, `alt`,
+`aria-label`, `placeholder`) and their rendered text content (frontmatter,
+`<script>`, and `<style>` are stripped first, since none of that is ever
+painted with the webfont) — for the character set. It then subsets via
+`pyftsubset` with `--layout-features=*` (keep every OpenType layout
+feature the source font defines), and prints the `unicode-range` values to
+paste into `fonts.css`.
 
 The Arabic subset was verified to retain `GSUB`/`GPOS` and the shaping
 features IBM Plex Sans Arabic actually ships — `init`, `medi`, `fina`,
@@ -177,8 +196,8 @@ network trace — no browser instrumentation was available for this pass):
 
 | Page   | Before (unsubsetted) | After (current subset) | Change |
 | ------ | --------------------- | ------------------------ | ------ |
-| `/`    | 45,712 B              | 18,444 B                 | −60%   |
-| `/ar/` | 152,004 B             | 36,628 B                 | −76%   |
+| `/`    | 45,712 B              | 18,732 B                 | −59%   |
+| `/ar/` | 152,004 B             | 36,916 B                 | −76%   |
 
 Before: `/` downloaded the unsubsetted Latin variable font (45,712 B).
 `/ar/` downloaded that same file too (it was preloaded unconditionally on

@@ -19,15 +19,18 @@
 // font in the stack instead of rendering a missing-glyph box.
 //
 // Character set: scanned from src/lib/nav.ts and src/lib/home.ts (all
-// locale strings), every page's title/description attributes and body
-// copy, and every src/content/apps/*.json entry, unioned with a small
-// fixed safety set (ASCII digits, Arabic-Indic digits ٠-٩, and common
-// punctuation). Re-run this script whenever copy changes — a new character
-// that isn't in the subset will silently fall back to the next font in the
-// stack rather than showing a missing-glyph box, so this degrades safely,
-// but re-running keeps new copy on-brand.
-import { execFileSync } from 'node:child_process';
+// locale strings), every src/content/apps/*.json entry, and every .astro
+// file's own markup under src/pages and src/components — both its quoted
+// attribute values (title, description, alt, aria-label, ...) and its
+// rendered text nodes (frontmatter, <script>, and <style> blocks are
+// stripped first, since none of that is ever painted with the webfont).
+// Unioned with a small fixed safety set (ASCII digits, Arabic-Indic digits
+// ٠-٩, and common punctuation). Re-run this script whenever copy
+// changes — a new character that isn't in the subset will silently fall
+// back to the next font in the stack rather than showing a missing-glyph
+// box, so this degrades safely, but re-running keeps new copy on-brand.
 import { mkdirSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -46,6 +49,43 @@ const isArabicBlock = (cp) =>
   (cp >= 0xfb50 && cp <= 0xfdff) ||
   (cp >= 0xfe70 && cp <= 0xfeff);
 
+function walkFiles(dir, out = []) {
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const p = join(dir, entry.name);
+    if (entry.isDirectory()) walkFiles(p, out);
+    else if (entry.name.endsWith('.astro')) out.push(p);
+  }
+  return out;
+}
+
+// Attributes whose values are real rendered/announced text — not class,
+// id, href, rel, type, width, etc., which are structural, not copy.
+const TEXT_ATTRS = ['title', 'description', 'alt', 'aria-label', 'placeholder'];
+
+// Strips frontmatter/<script>/<style> (never painted with the webfont),
+// then returns the text-bearing attribute values plus tag-stripped text
+// content. JSX/template expressions are stripped brace-pair by brace-pair,
+// repeatedly, so arbitrarily nested `{...}` (e.g. a .map() with a nested
+// template literal) fully disappears rather than leaving fragments.
+function extractAstroText(content) {
+  let markup = content.replace(/^---[\s\S]*?---/, '');
+  markup = markup.replace(/<script[\s\S]*?<\/script>/gi, ' ');
+  markup = markup.replace(/<style[\s\S]*?<\/style>/gi, ' ');
+
+  const attrPattern = new RegExp(`(?:${TEXT_ATTRS.join('|')})=(?:"([^"]*)"|'([^']*)')`, 'g');
+  const attrValues = [...markup.matchAll(attrPattern)].map((m) => m[1] ?? m[2] ?? '').join(' ');
+
+  let text = markup;
+  let prev;
+  do {
+    prev = text;
+    text = text.replace(/\{[^{}]*\}/g, ' ');
+  } while (text !== prev);
+  text = text.replace(/<[^>]+>/g, ' ');
+
+  return attrValues + ' ' + text;
+}
+
 async function collectCharacters() {
   const { navCopy } = await import('../src/lib/nav.ts');
   const navText = Object.values(navCopy)
@@ -57,11 +97,6 @@ async function collectCharacters() {
     .flatMap((o) => Object.values(o))
     .join('');
 
-  const titleDesc = execFileSync('sh', [
-    '-c',
-    `grep -rhoE '(title|description)="[^"]*"' src/pages -r | sed -E 's/^(title|description)="//; s/"$//'`,
-  ]).toString();
-
   const appEntries = readdirSync(join(ROOT, 'src/content/apps'))
     .filter((f) => f.endsWith('.json'))
     .map((f) => JSON.parse(readFileSync(join(ROOT, 'src/content/apps', f), 'utf8')));
@@ -70,10 +105,16 @@ async function collectCharacters() {
     .filter((v) => typeof v === 'string')
     .join('');
 
-  const bodyCopy = 'Coming soon.قريباً.';
+  const astroFiles = [
+    ...walkFiles(join(ROOT, 'src/pages')),
+    ...walkFiles(join(ROOT, 'src/components')),
+  ];
+  const astroText = astroFiles
+    .map((f) => extractAstroText(readFileSync(f, 'utf8')))
+    .join(' ');
 
-  const all = navText + homeText + titleDesc + appText + bodyCopy + LATIN_SAFETY + ARABIC_SAFETY;
-  const unique = [...new Set([...all])].filter((c) => c !== '\n');
+  const all = navText + homeText + appText + astroText + LATIN_SAFETY + ARABIC_SAFETY;
+  const unique = [...new Set([...all])].filter((c) => c === ' ' || !/\s/.test(c));
 
   const arabic = [];
   const latin = [];
