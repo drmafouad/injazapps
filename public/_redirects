@@ -1,1 +1,10 @@
-https://www.injazapps.com/*  https://injazapps.com/:splat  301
+# Cloudflare rejects absolute URLs in the SOURCE column here — sources
+# must be relative paths on this same hostname. Only same-hostname
+# relative-path rules belong in this file.
+#
+# www -> apex is handled by a Cloudflare Redirect Rule in the dashboard,
+# not by this file (it would need an absolute-URL source, which this file
+# can't express).
+#
+# OwlMD legacy URLs live on a different hostname and must also be handled
+# by a Cloudflare Redirect Rule, for the same reason.

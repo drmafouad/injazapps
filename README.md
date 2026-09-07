@@ -1,7 +1,7 @@
 # InjazApps
 
-Version: 1.1.3
-Last updated: 2026-09-07 02:50 +03
+Version: 1.1.4
+Last updated: 2026-09-07 03:00 +03
 
 Marketing site for InjazApps, a mobile app studio, built with Astro and
 hand-written CSS (no Tailwind, no UI framework). This is the scaffolding and
@@ -46,15 +46,40 @@ divider), and `OffsetPanel` (the hard-offset depth treatment) live in
 
 ## Hosting
 
-Deployment target is Cloudflare Pages. Build command `npm run build`,
-output directory `dist`. `public/_redirects` sends `www` to the apex
-domain; `public/_headers` sets baseline security headers site-wide and a
-one-year immutable cache on `/fonts/*`. Node version is pinned to 22 via
-`.nvmrc` and `engines.node` in `package.json` so local, CI, and the
-Cloudflare build agree; `package-lock.json` should be regenerated with npm
-as shipped by that Node version if it ever drifts (a lockfile written by a
-different npm major version can omit optional transitive dependencies that
-`npm ci` then rejects as out of sync).
+Deployment target is a Cloudflare Worker serving static assets (not
+Cloudflare Pages), configured by `wrangler.jsonc`. The site is pure static
+output — no adapter, no server code — so `wrangler.jsonc` is deliberately
+minimal: `name`, `compatibility_date`, and an `assets` block pointing at
+`./dist` with `not_found_handling: "404-page"`. No `main` entry point, no
+bindings.
+
+**Deploy with `npm run deploy` (`wrangler deploy`), never `npx wrangler
+deploy`.** `npx` can fetch a fresh, un-pinned wrangler and — in a
+non-interactive build context — auto-run its framework setup wizard, which
+will detect Astro, offer to install `@astrojs/cloudflare`, and rewrite
+`astro.config.mjs` to add a server adapter this static site doesn't need
+(that's what happened once already; see the git history around
+`wrangler.jsonc` if it recurs). Wrangler is pinned as an exact-version
+devDependency for the same reason — `npm run deploy`/`npm run preview`
+always run the pinned local copy. If the Cloudflare dashboard's "Workers
+Build" deploy command is ever editable, it must be set to `npm run deploy`,
+not the default `npx wrangler deploy`.
+
+`public/_headers` sets baseline security headers site-wide and a one-year
+immutable cache on `/fonts/*` — Workers static assets honors the same
+`_headers`/`_redirects` file conventions as Pages. `public/_redirects`
+intentionally carries no rules (see SEO below for why). Node version is
+pinned to 22 via `.nvmrc` and `engines.node` in `package.json` so local,
+CI, and the Cloudflare build agree; `package-lock.json` should be
+regenerated with npm as shipped by that Node version if it ever drifts (a
+lockfile written by a different npm major version can omit optional
+transitive dependencies that `npm ci` then rejects as out of sync).
+
+Dashboard check (not something a repo file can enforce): only one
+Cloudflare project should be connected to this repo. If a legacy Pages
+project and the current Workers project are both watching the same GitHub
+repo, every push triggers two builds — remove or disconnect whichever one
+isn't this Worker.
 
 ## Commands
 
@@ -112,7 +137,7 @@ in `public/fonts/` and the updated `unicode-range` values in
 subsets. It requires Python fonttools on PATH
 (`pip install fonttools brotli`) to run `pyftsubset` — this is a
 developer-machine tool only; it is never run during `npm run build` and
-the Cloudflare Pages build machine does not have Python installed. The
+the Cloudflare build machine does not have Python installed. The
 script scans `src/lib/nav.ts` and every page's title/description/body copy
 for the character set, subsets via `pyftsubset` with `--layout-features=*`
 (keep every OpenType layout feature the source font defines), and prints
@@ -150,12 +175,19 @@ Latin-subset download eliminated by the unicode-range fix.
 
 ## SEO
 
-Canonical is the apex domain (`https://injazapps.com`, no `www`); Cloudflare
-Pages redirects `www` to it via `public/_redirects`. `@astrojs/sitemap` is
-configured with the `en`/`ar` locale map so `sitemap-index.xml` carries
-hreflang alternates for every route. Every page sets a description and
-emits Open Graph / Twitter card tags via `BaseLayout`, falling back to
-`/og-default.png` when a page doesn't pass its own `ogImage`.
+Canonical is the apex domain (`https://injazapps.com`, no `www`).
+`public/_redirects` can't express that redirect: Cloudflare rejects
+absolute URLs (`https://www.injazapps.com/*`) in the source column, only
+same-hostname relative paths are valid there, and `www` is a different
+hostname. `www` → apex, and any OwlMD legacy-URL redirects (a different
+hostname again), are configured as Cloudflare Redirect Rules in the
+dashboard instead — `_redirects` stays reserved for same-hostname
+relative-path rules only, of which this site currently has none.
+`@astrojs/sitemap` is configured with the `en`/`ar` locale map so
+`sitemap-index.xml` carries hreflang alternates for every route. Every
+page sets a description and emits Open Graph / Twitter card tags via
+`BaseLayout`, falling back to `/og-default.png` when a page doesn't pass
+its own `ogImage`.
 
 ## Icons
 
