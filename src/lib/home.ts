@@ -6,24 +6,25 @@ export const homeCopy: Record<Locale, Record<string, string>> = {
     tagline: 'Software cut to fit.',
     seeApps: 'See the apps',
     whatThisIs:
-      "InjazApps is a small studio in Kuwait building focused mobile apps. Arabic first, offline where it matters, no accounts you don't need.",
+      'InjazApps builds mobile apps that do one thing properly. Fast, private by default, and fully usable offline.',
     comingSoon: 'Coming soon',
-    builtInKuwait: 'Built in Kuwait.',
+    builtCarefully: 'Built carefully.',
     howThisWasMade: 'How this was made',
   },
   ar: {
     // "InjazApps" is a brand name and is never translated/transliterated
     // into Arabic script — not even here in running prose. It's rendered
     // directly in the template (wrapped in <bdi>, since it's Latin text
-    // inside Arabic running text), so this sentence starts from the word
-    // right after it.
+    // inside Arabic running text), so the sentence is split around it:
+    // whatThisIsPrefix + "InjazApps" + whatThisIsSuffix.
     wordmark: 'InjazApps',
     tagline: 'برامج مصنوعة على المقاس.',
     seeApps: 'شاهد التطبيقات',
-    whatThisIs:
-      'استوديو صغير في الكويت يبني تطبيقات موبايل مركّزة. عربي أولًا، يعمل دون اتصال حيث يهم، وبلا حسابات لا تحتاجها.',
+    whatThisIsPrefix: 'تبني',
+    whatThisIsSuffix:
+      'تطبيقات موبايل تتقن عملًا واحدًا. سريعة، خاصة بطبيعتها، وتعمل بالكامل دون اتصال.',
     comingSoon: 'قريبًا',
-    builtInKuwait: 'صُنع في الكويت.',
+    builtCarefully: 'صُنع بعناية.',
     howThisWasMade: 'كيف بُني هذا',
   },
 };

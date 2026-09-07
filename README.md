@@ -1,7 +1,7 @@
 # InjazApps
 
-Version: 1.1.8
-Last updated: 2026-09-07 20:25 +03
+Version: 1.1.9
+Last updated: 2026-09-07 20:40 +03
 
 Marketing site for InjazApps, a mobile app studio, built with Astro and
 hand-written CSS (no Tailwind, no UI framework). The home page (`/` and
@@ -52,6 +52,12 @@ Brand rules enforced across every component:
   copyright line, an app card's name, the home page's intro paragraph),
   it's wrapped in `<bdi>` so adjacent Arabic punctuation doesn't render on
   the wrong side.
+- Positioning is quality, craft, and engineering only — no reference to
+  place, nationality, or ethnicity (no Kuwait, Egypt, "the Gulf," "the
+  Arab world," or heritage framing of any kind — "Cairo Brass" is the
+  accent colour's name, not an exception to this). Language *support* is
+  a fine thing to state as a product capability ("fully usable offline");
+  language *identity* claims like "Arabic first" are not.
 
 ## Components
 
@@ -210,8 +216,8 @@ network trace — no browser instrumentation was available for this pass):
 
 | Page   | Before (unsubsetted) | After (current subset) | Change |
 | ------ | --------------------- | ------------------------ | ------ |
-| `/`    | 45,712 B              | 18,732 B                 | −59%   |
-| `/ar/` | 152,004 B             | 36,636 B                 | −76%   |
+| `/`    | 45,712 B              | 18,564 B                 | −59%   |
+| `/ar/` | 152,004 B             | 36,200 B                 | −76%   |
 
 Before: `/` downloaded the unsubsetted Latin variable font (45,712 B).
 `/ar/` downloaded that same file too (it was preloaded unconditionally on

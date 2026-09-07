@@ -18,7 +18,7 @@
   font-display: swap;
   font-weight: 100 700;
   src: url('/fonts/ibm-plex-sans-latin-subset.woff2') format('woff2-variations');
-  unicode-range: U+20-22, U+26-29, U+2C-3B, U+3F, U+41-49, U+4B-4D, U+4F-50, U+53-54, U+57, U+61-70,
+  unicode-range: U+20-22, U+26-29, U+2C-3B, U+3F, U+41-49, U+4C-4D, U+4F-50, U+53-54, U+57, U+61-70,
     U+72-7A, U+A9, U+101, U+2013-2014;
 }
 
@@ -28,7 +28,7 @@
   font-display: swap;
   font-weight: 400;
   src: url('/fonts/ibm-plex-sans-arabic-400-subset.woff2') format('woff2');
-  unicode-range: U+60C, U+61B, U+61F, U+623, U+625-635, U+637-63A, U+641-64B, U+64F, U+651,
+  unicode-range: U+60C, U+61B, U+61F, U+623, U+625-62A, U+62C-635, U+637-63A, U+641-64B, U+64F, U+651,
     U+660-669;
 }
 
@@ -38,6 +38,6 @@
   font-display: swap;
   font-weight: 700;
   src: url('/fonts/ibm-plex-sans-arabic-700-subset.woff2') format('woff2');
-  unicode-range: U+60C, U+61B, U+61F, U+623, U+625-635, U+637-63A, U+641-64B, U+64F, U+651,
+  unicode-range: U+60C, U+61B, U+61F, U+623, U+625-62A, U+62C-635, U+637-63A, U+641-64B, U+64F, U+651,
     U+660-669;
 }

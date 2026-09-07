@@ -44,7 +44,7 @@ const aboutHref = getRelativeLocaleUrl(locale, routes.about);
     {
       locale === 'ar' ? (
         <>
-          <bdi>InjazApps</bdi> {t.whatThisIs}
+          {t.whatThisIsPrefix} <bdi>InjazApps</bdi> {t.whatThisIsSuffix}
         </>
       ) : (
         t.whatThisIs
@@ -79,7 +79,7 @@ const aboutHref = getRelativeLocaleUrl(locale, routes.about);
 </section>
 
 <section class="closing">
-  <p class="closing__text">{t.builtInKuwait}</p>
+  <p class="closing__text">{t.builtCarefully}</p>
   <a href={aboutHref} class="closing__link">{t.howThisWasMade}</a>
 </section>
 
