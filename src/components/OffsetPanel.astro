@@ -4,12 +4,13 @@
 // shadow — the offset itself carries the depth.
 interface Props {
   as?: 'div' | 'section' | 'article';
+  class?: string;
 }
 
-const { as: Tag = 'div' } = Astro.props;
+const { as: Tag = 'div', class: className } = Astro.props;
 ---
 
-<Tag class="offset-panel">
+<Tag class:list={['offset-panel', className]}>
   <div class="offset-panel__body">
     <slot />
   </div>
@@ -30,15 +31,21 @@ const { as: Tag = 'div' } = Astro.props;
     inset-inline-end: calc(-1 * var(--offset-depth));
     background-color: var(--border-default);
     z-index: 0;
+    transition:
+      inset-block-start 0.15s ease,
+      inset-inline-start 0.15s ease,
+      inset-block-end 0.15s ease,
+      inset-inline-end 0.15s ease;
   }
 
   .offset-panel__body {
     position: relative;
     z-index: 1;
     background-color: var(--surface-raised);
-    border: 1px solid var(--border-default);
+    border: 1px solid var(--offset-panel-border-color, var(--border-default));
     border-radius: var(--radius-max);
     padding-block: var(--space-md);
     padding-inline: var(--space-md);
+    transition: border-color 0.15s ease;
   }
 </style>

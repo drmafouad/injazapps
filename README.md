@@ -1,11 +1,12 @@
 # InjazApps
 
-Version: 1.1.5
-Last updated: 2026-09-07 03:15 +03
+Version: 1.1.6
+Last updated: 2026-09-07 03:45 +03
 
 Marketing site for InjazApps, a mobile app studio, built with Astro and
-hand-written CSS (no Tailwind, no UI framework). This is the scaffolding and
-design-system layer only — page content is deliberately not written yet.
+hand-written CSS (no Tailwind, no UI framework). The home page (`/` and
+`/ar/`) is written; every other route is still scaffolding — an
+`OffsetPanel` with a "Coming soon." placeholder.
 
 ## Stack
 
@@ -42,7 +43,23 @@ Brand rules enforced across every component:
 
 `BaseLayout`, `Header`, `Footer`, `AblaqRule` (the signature alternating
 divider), and `OffsetPanel` (the hard-offset depth treatment) live in
-`src/layouts` and `src/components`.
+`src/layouts` and `src/components`. `HomeContent` renders the home page
+body (hero, intro, apps grid, closing strip) for both locales; `Header`
+and `HomeContent` are the only two places `AblaqRule` is rendered with
+`accent` on and off respectively — every other instance stays off, so the
+Header is the single owner of the Cairo Brass accent site-wide.
+
+## Content
+
+`src/content/apps/` is a content collection (`src/content.config.ts`) with
+one JSON entry per app — `slug`, `name`/`nameAr`, `tagline`/`taglineAr`,
+`iconPath`, and `status` (`"live"` or `"soon"`). The home page's app cards
+read from it; app icons aren't produced yet, so cards render a plain
+outlined placeholder box instead of `iconPath` (which exists in the schema
+for when real icon art lands). Copy for the home page itself lives in
+`src/lib/home.ts`, alongside `src/lib/nav.ts` for nav/footer strings —
+both are scanned by the font-subsetting script (see Fonts), so add new
+copy there rather than inline in a component when it needs font coverage.
 
 ## Hosting
 
@@ -137,11 +154,12 @@ in `public/fonts/` and the updated `unicode-range` values in
 subsets. It requires Python fonttools on PATH
 (`pip install fonttools brotli`) to run `pyftsubset` — this is a
 developer-machine tool only; it is never run during `npm run build` and
-the Cloudflare build machine does not have Python installed. The
-script scans `src/lib/nav.ts` and every page's title/description/body copy
-for the character set, subsets via `pyftsubset` with `--layout-features=*`
-(keep every OpenType layout feature the source font defines), and prints
-the `unicode-range` values to paste into `fonts.css`.
+the Cloudflare build machine does not have Python installed. The script
+scans `src/lib/nav.ts`, `src/lib/home.ts`, every `src/content/apps/*.json`
+entry, and every page's title/description/body copy for the character
+set, subsets via `pyftsubset` with `--layout-features=*` (keep every
+OpenType layout feature the source font defines), and prints the
+`unicode-range` values to paste into `fonts.css`.
 
 The Arabic subset was verified to retain `GSUB`/`GPOS` and the shaping
 features IBM Plex Sans Arabic actually ships — `init`, `medi`, `fina`,
@@ -150,17 +168,17 @@ no separate `isol` or `liga` feature (isolated forms are the default cmap
 glyphs, and lam-alef is a *required* ligature under `rlig`, not `liga`) —
 that's true of the unsubsetted font too, not something subsetting removed.
 The lam-alef ligature rule itself (medial/initial lam + final alef, for
-every alef variant in the current subset — ا, إ, آ) was confirmed present
-in the subsetted glyph tables.
+every alef variant in the current subset — ا, أ, إ, آ) was confirmed
+present in the subsetted glyph tables.
 
 **Font payload, `/` vs `/ar/`** (sum of woff2 files actually fetched, per
 the font-matching rules above; measured from file sizes, not a live
 network trace — no browser instrumentation was available for this pass):
 
-| Page  | Before   | After   | Change |
-| ----- | -------- | ------- | ------ |
-| `/`   | 45,712 B | 16,904 B | −63% |
-| `/ar/` | 152,004 B | 31,932 B | −79% |
+| Page   | Before (unsubsetted) | After (current subset) | Change |
+| ------ | --------------------- | ------------------------ | ------ |
+| `/`    | 45,712 B              | 18,444 B                 | −60%   |
+| `/ar/` | 152,004 B             | 36,628 B                 | −76%   |
 
 Before: `/` downloaded the unsubsetted Latin variable font (45,712 B).
 `/ar/` downloaded that same file too (it was preloaded unconditionally on
@@ -169,9 +187,11 @@ its own Latin-400 subset (19,164 B, matched ahead of the real Latin font
 for Latin text under the old unrestricted unicode-range), plus its
 Arabic-700 subset (44,280 B, matched as the nearest available weight to
 the header wordmark's requested 600). After: `/` downloads only the
-subsetted Latin file (16,904 B); `/ar/` downloads that plus the subsetted
-Arabic 400 and 700 faces (7,480 B + 7,548 B), with the redundant Arabic
-Latin-subset download eliminated by the unicode-range fix.
+subsetted Latin file; `/ar/` downloads that plus the subsetted Arabic 400
+and 700 faces, with the redundant Arabic Latin-subset download eliminated
+by the unicode-range fix. The "after" totals grow as copy grows (they
+include the home page's text) — re-run `npm run fonts:subset` and update
+this table when that happens again.
 
 ## SEO
 

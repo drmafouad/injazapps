@@ -111,6 +111,11 @@ const langSwitchHref = getRelativeLocaleUrl(target, path);
   }
 
   .site-header__lang {
+    /* This link's label is always in the OTHER locale's script (Arabic
+       label on English pages, Latin label on Arabic pages) — it needs the
+       Arabic face in its stack regardless of the page's own locale, or the
+       Arabic label falls back to a system font on English pages. */
+    font-family: var(--font-arabic);
     font-size: var(--text-sm);
     text-decoration: none;
     color: var(--text-muted);

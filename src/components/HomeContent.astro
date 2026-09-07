@@ -1,0 +1,204 @@
+---
+import { getRelativeLocaleUrl } from 'astro:i18n';
+import { getCollection } from 'astro:content';
+import type { Locale } from '../lib/i18n';
+import { routes } from '../lib/nav';
+import { homeCopy } from '../lib/home';
+import AblaqRule from './AblaqRule.astro';
+import OffsetPanel from './OffsetPanel.astro';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const t = homeCopy[locale];
+
+const appOrder = ['owlmd', 'mizan', 'sada'] as const;
+const allApps = await getCollection('apps');
+const aboutHref = getRelativeLocaleUrl(locale, routes.about);
+---
+
+<section class="hero">
+  <div class="hero__content">
+    <h1 class="hero__wordmark">{t.wordmark}</h1>
+    <AblaqRule accent={false} />
+    <p class="hero__tagline">{t.tagline}</p>
+    <a href="#apps" class="hero__cta">{t.seeApps}</a>
+  </div>
+  <img src="/injazapps-icon-web-48r.png" width="88" height="88" alt="" class="hero__mark" />
+</section>
+
+<section class="intro">
+  <p class="intro__text">{t.whatThisIs}</p>
+</section>
+
+<section id="apps" class="apps">
+  <div class="apps__grid">
+    {
+      appOrder.map((slug) => {
+        const app = allApps.find((entry) => entry.data.slug === slug)!;
+        const href = getRelativeLocaleUrl(locale, routes[slug]);
+        return (
+          <OffsetPanel as="article" class="app-card">
+            <a href={href} class="app-card__link">
+              <span class="app-card__icon" aria-hidden="true" />
+              <span class="app-card__name">
+                {locale === 'ar' ? app.data.nameAr : app.data.name}
+              </span>
+              <span class="app-card__tagline">
+                {locale === 'ar' ? app.data.taglineAr : app.data.tagline}
+              </span>
+              <span class="app-card__status">{t.comingSoon}</span>
+            </a>
+          </OffsetPanel>
+        );
+      })
+    }
+  </div>
+</section>
+
+<section class="closing">
+  <p class="closing__text">{t.builtInKuwait}</p>
+  <a href={aboutHref} class="closing__link">{t.howThisWasMade}</a>
+</section>
+
+<style>
+  .hero,
+  .intro,
+  .apps,
+  .closing {
+    max-inline-size: 72rem;
+    margin-inline: auto;
+    padding-inline: var(--space-md);
+  }
+
+  .hero {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-lg);
+    padding-block: var(--space-xl);
+  }
+
+  .hero__content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    flex: 1 1 280px;
+  }
+
+  .hero__wordmark {
+    font-size: var(--text-display);
+    font-weight: var(--font-weight-wordmark);
+    line-height: 1.1;
+  }
+
+  .hero__tagline {
+    font-size: var(--text-lg);
+    color: var(--text-primary);
+  }
+
+  .hero__cta {
+    align-self: flex-start;
+    color: var(--signal-default);
+    text-decoration: none;
+  }
+
+  .hero__cta:hover,
+  .hero__cta:focus-visible {
+    color: var(--signal-hover);
+  }
+
+  .hero__mark {
+    flex: 0 0 88px;
+    inline-size: 88px;
+    block-size: 88px;
+  }
+
+  .intro {
+    padding-block: var(--space-lg);
+  }
+
+  .intro__text {
+    max-inline-size: 60ch;
+    color: var(--text-secondary);
+  }
+
+  .apps {
+    padding-block: var(--space-lg);
+  }
+
+  .apps__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--space-md);
+  }
+
+  .app-card {
+    --offset-depth: 4px;
+  }
+
+  .app-card:hover,
+  .app-card:focus-within {
+    --offset-depth: 8px;
+    --offset-panel-border-color: var(--signal-default);
+  }
+
+  .app-card__link {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .app-card__icon {
+    display: block;
+    inline-size: 96px;
+    block-size: 96px;
+    background-color: var(--surface-raised);
+    border: 0.5px solid var(--border-default);
+    margin-block-end: var(--space-sm);
+  }
+
+  .app-card__name {
+    display: block;
+    font-weight: 700;
+  }
+
+  .app-card__tagline {
+    display: block;
+    margin-block-start: var(--space-2xs);
+    color: var(--text-primary);
+  }
+
+  .app-card__status {
+    display: block;
+    margin-block-start: var(--space-sm);
+    color: var(--text-muted);
+    font-size: var(--text-sm);
+  }
+
+  .closing {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-md);
+    padding-block: var(--space-xl);
+  }
+
+  .closing__text {
+    color: var(--text-primary);
+  }
+
+  .closing__link {
+    color: var(--signal-default);
+    text-decoration: none;
+  }
+
+  .closing__link:hover,
+  .closing__link:focus-visible {
+    color: var(--signal-hover);
+  }
+</style>

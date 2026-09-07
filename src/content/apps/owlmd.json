@@ -1,0 +1,9 @@
+{
+  "slug": "owlmd",
+  "name": "OwlMD",
+  "nameAr": "أول إم دي",
+  "tagline": "Write in Markdown. Export a PDF that looks finished.",
+  "taglineAr": "اكتب بصيغة ماركداون، وصدّر ملف PDF جاهزًا.",
+  "iconPath": "/icons/owlmd.png",
+  "status": "soon"
+}

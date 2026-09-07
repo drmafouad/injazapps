@@ -18,15 +18,16 @@
 // Unicode block) fixes that: unmatched characters fall through to the next
 // font in the stack instead of rendering a missing-glyph box.
 //
-// Character set: scanned from src/lib/nav.ts (all locale strings) plus
-// every page's title/description attributes and body copy, unioned with a
-// small fixed safety set (ASCII digits, Arabic-Indic digits ٠-٩, and common
+// Character set: scanned from src/lib/nav.ts and src/lib/home.ts (all
+// locale strings), every page's title/description attributes and body
+// copy, and every src/content/apps/*.json entry, unioned with a small
+// fixed safety set (ASCII digits, Arabic-Indic digits ٠-٩, and common
 // punctuation). Re-run this script whenever copy changes — a new character
 // that isn't in the subset will silently fall back to the next font in the
 // stack rather than showing a missing-glyph box, so this degrades safely,
 // but re-running keeps new copy on-brand.
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, statSync } from 'node:fs';
+import { mkdirSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -51,14 +52,27 @@ async function collectCharacters() {
     .flatMap((o) => Object.values(o))
     .join('');
 
+  const { homeCopy } = await import('../src/lib/home.ts');
+  const homeText = Object.values(homeCopy)
+    .flatMap((o) => Object.values(o))
+    .join('');
+
   const titleDesc = execFileSync('sh', [
     '-c',
     `grep -rhoE '(title|description)="[^"]*"' src/pages -r | sed -E 's/^(title|description)="//; s/"$//'`,
   ]).toString();
 
+  const appEntries = readdirSync(join(ROOT, 'src/content/apps'))
+    .filter((f) => f.endsWith('.json'))
+    .map((f) => JSON.parse(readFileSync(join(ROOT, 'src/content/apps', f), 'utf8')));
+  const appText = appEntries
+    .flatMap((entry) => Object.values(entry))
+    .filter((v) => typeof v === 'string')
+    .join('');
+
   const bodyCopy = 'Coming soon.قريباً.';
 
-  const all = navText + titleDesc + bodyCopy + LATIN_SAFETY + ARABIC_SAFETY;
+  const all = navText + homeText + titleDesc + appText + bodyCopy + LATIN_SAFETY + ARABIC_SAFETY;
   const unique = [...new Set([...all])].filter((c) => c !== '\n');
 
   const arabic = [];
