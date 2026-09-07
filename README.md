@@ -1,12 +1,13 @@
 # InjazApps
 
-Version: 1.1.9
-Last updated: 2026-09-07 20:40 +03
+Version: 1.2.0
+Last updated: 2026-09-07 21:35 +03
 
 Marketing site for InjazApps, a mobile app studio, built with Astro and
 hand-written CSS (no Tailwind, no UI framework). The home page (`/` and
-`/ar/`) is written; every other route is still scaffolding — an
-`OffsetPanel` with a "Coming soon." placeholder.
+`/ar/`) and the about page (`/about` and `/ar/about`) are written; every
+other route is still scaffolding — an `OffsetPanel` with a "Coming soon."
+placeholder.
 
 ## Stack
 
@@ -58,6 +59,12 @@ Brand rules enforced across every component:
   accent colour's name, not an exception to this). Language *support* is
   a fine thing to state as a product capability ("fully usable offline");
   language *identity* claims like "Arabic first" are not.
+  - **The one allowlisted exception is `/about` and `/ar/about`.** Those
+    two pages, and only those two, may name a place or heritage (Cairo,
+    Mamluk-era architecture, ...) — and only to describe the *origin of
+    the mark itself* (the joggled joint, ablaq coursing, the colour
+    palette), never to describe the studio or the people who work there.
+    No other page may reference place, nationality, or ethnicity.
 
 ## Components
 
@@ -80,6 +87,19 @@ for when real icon art lands). Copy for the home page itself lives in
 `src/lib/home.ts`, alongside `src/lib/nav.ts` for nav/footer strings —
 both are scanned by the font-subsetting script (see Fonts), so add new
 copy there rather than inline in a component when it needs font coverage.
+
+`src/content/pages/` is a second content collection, for long-form prose
+pages (currently just `about.md` / `about.ar.md`, one file per locale —
+each file's `slug` frontmatter field controls its collection entry ID
+explicitly, since the default slugger mangles a dotted filename like
+`about.ar.md` into `aboutar`). `src/lib/prose.ts` parses a page's raw
+markdown body into a title and a list of sections (an "# H1" title, then
+"## H2"-delimited sections of plain paragraphs — no bold/italic/links/
+lists, so it's a deliberately minimal parser, not a markdown pipeline).
+`ProseContent.astro` renders that structure generically: 68ch measure,
+generous line-height, an `AblaqRule` (accent off) between every pair of
+sections, and any `InjazApps` substring in a title or paragraph wrapped in
+`<bdi>` (a no-op in Latin text, correct when the block is Arabic).
 
 ## Hosting
 
@@ -216,8 +236,8 @@ network trace — no browser instrumentation was available for this pass):
 
 | Page   | Before (unsubsetted) | After (current subset) | Change |
 | ------ | --------------------- | ------------------------ | ------ |
-| `/`    | 45,712 B              | 18,564 B                 | −59%   |
-| `/ar/` | 152,004 B             | 36,200 B                 | −76%   |
+| `/`    | 45,712 B              | 18,916 B                 | −59%   |
+| `/ar/` | 152,004 B             | 37,600 B                 | −75%   |
 
 Before: `/` downloaded the unsubsetted Latin variable font (45,712 B).
 `/ar/` downloaded that same file too (it was preloaded unconditionally on

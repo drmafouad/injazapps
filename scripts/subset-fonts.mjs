@@ -19,16 +19,18 @@
 // font in the stack instead of rendering a missing-glyph box.
 //
 // Character set: scanned from src/lib/nav.ts and src/lib/home.ts (all
-// locale strings), every src/content/apps/*.json entry, and every .astro
-// file's own markup under src/pages and src/components — both its quoted
-// attribute values (title, description, alt, aria-label, ...) and its
-// rendered text nodes (frontmatter, <script>, and <style> blocks are
-// stripped first, since none of that is ever painted with the webfont).
-// Unioned with a small fixed safety set (ASCII digits, Arabic-Indic digits
-// ٠-٩, and common punctuation). Re-run this script whenever copy
-// changes — a new character that isn't in the subset will silently fall
-// back to the next font in the stack rather than showing a missing-glyph
-// box, so this degrades safely, but re-running keeps new copy on-brand.
+// locale strings), every file under src/content/ (any collection, .json
+// or .md — a new content collection or page is picked up automatically,
+// no changes needed here), and every .astro file's own markup under
+// src/pages and src/components — both its quoted attribute values
+// (title, description, alt, aria-label, ...) and its rendered text nodes
+// (frontmatter, <script>, and <style> blocks are stripped first, since
+// none of that is ever painted with the webfont). Unioned with a small
+// fixed safety set (ASCII digits, Arabic-Indic digits ٠-٩, and common
+// punctuation). Re-run this script whenever copy changes — a new
+// character that isn't in the subset will silently fall back to the next
+// font in the stack rather than showing a missing-glyph box, so this
+// degrades safely, but re-running keeps new copy on-brand.
 import { mkdirSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { dirname, join } from 'node:path';
@@ -49,13 +51,27 @@ const isArabicBlock = (cp) =>
   (cp >= 0xfb50 && cp <= 0xfdff) ||
   (cp >= 0xfe70 && cp <= 0xfeff);
 
-function walkFiles(dir, out = []) {
+function walkFiles(dir, extensions, out = []) {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     const p = join(dir, entry.name);
-    if (entry.isDirectory()) walkFiles(p, out);
-    else if (entry.name.endsWith('.astro')) out.push(p);
+    if (entry.isDirectory()) walkFiles(p, extensions, out);
+    else if (extensions.some((ext) => entry.name.endsWith(ext))) out.push(p);
   }
   return out;
+}
+
+// A content collection entry's rendered/visible text: for JSON, every
+// string value; for markdown, the body with frontmatter and heading
+// markers stripped (see src/lib/prose.ts — "# "/"## " are consumed as
+// structure, never painted as literal characters).
+function extractContentText(filePath) {
+  const raw = readFileSync(filePath, 'utf8');
+  if (filePath.endsWith('.json')) {
+    return Object.values(JSON.parse(raw))
+      .filter((v) => typeof v === 'string')
+      .join(' ');
+  }
+  return raw.replace(/^---[\s\S]*?---/, '').replace(/^#{1,6}\s+/gm, '');
 }
 
 // Attributes whose values are real rendered/announced text — not class,
@@ -97,23 +113,18 @@ async function collectCharacters() {
     .flatMap((o) => Object.values(o))
     .join('');
 
-  const appEntries = readdirSync(join(ROOT, 'src/content/apps'))
-    .filter((f) => f.endsWith('.json'))
-    .map((f) => JSON.parse(readFileSync(join(ROOT, 'src/content/apps', f), 'utf8')));
-  const appText = appEntries
-    .flatMap((entry) => Object.values(entry))
-    .filter((v) => typeof v === 'string')
-    .join('');
+  const contentFiles = walkFiles(join(ROOT, 'src/content'), ['.json', '.md']);
+  const contentText = contentFiles.map(extractContentText).join(' ');
 
   const astroFiles = [
-    ...walkFiles(join(ROOT, 'src/pages')),
-    ...walkFiles(join(ROOT, 'src/components')),
+    ...walkFiles(join(ROOT, 'src/pages'), ['.astro']),
+    ...walkFiles(join(ROOT, 'src/components'), ['.astro']),
   ];
   const astroText = astroFiles
     .map((f) => extractAstroText(readFileSync(f, 'utf8')))
     .join(' ');
 
-  const all = navText + homeText + appText + astroText + LATIN_SAFETY + ARABIC_SAFETY;
+  const all = navText + homeText + contentText + astroText + LATIN_SAFETY + ARABIC_SAFETY;
   const unique = [...new Set([...all])].filter((c) => c === ' ' || !/\s/.test(c));
 
   const arabic = [];

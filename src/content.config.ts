@@ -15,4 +15,12 @@ const apps = defineCollection({
   }),
 });
 
-export const collections = { apps };
+// Long-form prose pages (about, and future pages like terms/privacy).
+// No frontmatter fields are required — the H1 and ## section headings in
+// the markdown body itself carry the structure; see src/lib/prose.ts.
+const pages = defineCollection({
+  loader: glob({ pattern: '*.md', base: './src/content/pages' }),
+  schema: z.object({}),
+});
+
+export const collections = { apps, pages };

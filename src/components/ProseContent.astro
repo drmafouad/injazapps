@@ -1,0 +1,78 @@
+---
+// Generic long-form prose renderer (about, and future pages like terms or
+// privacy): a title, sections separated by AblaqRule (accent off — the
+// Header is the site's single owner of the accent), max 68ch measure,
+// generous line-height. Any "InjazApps" inside a text block is wrapped in
+// <bdi> — a no-op in Latin text, correct when the block is Arabic prose.
+import AblaqRule from './AblaqRule.astro';
+import { splitOnBrandName, type ProseDocument } from '../lib/prose';
+
+interface Props {
+  doc: ProseDocument;
+}
+
+const { doc } = Astro.props;
+---
+
+<article class="prose">
+  <h1>
+    {
+      splitOnBrandName(doc.title).map((part, i, arr) => (
+        <>
+          {part}
+          {i < arr.length - 1 && <bdi>InjazApps</bdi>}
+        </>
+      ))
+    }
+  </h1>
+  {
+    doc.sections.map((section, i) => (
+      <>
+        {i > 0 && <AblaqRule accent={false} />}
+        <section>
+          {section.heading && <h2>{section.heading}</h2>}
+          {section.paragraphs.map((paragraph) => (
+            <p>
+              {splitOnBrandName(paragraph).map((part, i, arr) => (
+                <>
+                  {part}
+                  {i < arr.length - 1 && <bdi>InjazApps</bdi>}
+                </>
+              ))}
+            </p>
+          ))}
+        </section>
+      </>
+    ))
+  }
+</article>
+
+<style>
+  .prose {
+    max-inline-size: 68ch;
+    margin-inline: auto;
+    padding-inline: var(--space-md);
+    padding-block: var(--space-xl);
+  }
+
+  .prose h1 {
+    margin-block-end: var(--space-lg);
+  }
+
+  .prose section {
+    padding-block: var(--space-lg);
+  }
+
+  .prose h2 {
+    margin-block-end: var(--space-sm);
+  }
+
+  .prose p {
+    line-height: 1.8;
+    color: var(--text-primary);
+  }
+
+  .prose p + p {
+    margin-block-start: var(--space-sm);
+  }
+</style>

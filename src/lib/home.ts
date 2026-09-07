@@ -18,7 +18,7 @@ export const homeCopy: Record<Locale, Record<string, string>> = {
     // inside Arabic running text), so the sentence is split around it:
     // whatThisIsPrefix + "InjazApps" + whatThisIsSuffix.
     wordmark: 'InjazApps',
-    tagline: 'برامج مصنوعة على المقاس.',
+    tagline: 'برامج تُصنع بإتقان.',
     seeApps: 'شاهد التطبيقات',
     whatThisIsPrefix: 'تبني',
     whatThisIsSuffix:

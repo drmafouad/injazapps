@@ -1,10 +1,13 @@
 ---
+import { getEntry } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import OffsetPanel from '../../components/OffsetPanel.astro';
+import ProseContent from '../../components/ProseContent.astro';
+import { parseProse } from '../../lib/prose';
+
+const entry = await getEntry('pages', 'about-ar');
+const doc = parseProse(entry!.body!);
 ---
 
 <BaseLayout locale="ar" path="/about" title="من نحن — InjazApps" description="عن InjazApps.">
-  <OffsetPanel>
-    <p>قريباً.</p>
-  </OffsetPanel>
+  <ProseContent doc={doc} />
 </BaseLayout>
