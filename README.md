@@ -1,7 +1,7 @@
 # InjazApps
 
-Version: 1.1.4
-Last updated: 2026-09-07 03:00 +03
+Version: 1.1.5
+Last updated: 2026-09-07 03:15 +03
 
 Marketing site for InjazApps, a mobile app studio, built with Astro and
 hand-written CSS (no Tailwind, no UI framework). This is the scaffolding and
