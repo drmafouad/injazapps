@@ -1,7 +1,7 @@
 # InjazApps
 
-Version: 1.1.7
-Last updated: 2026-09-07 13:05 +03
+Version: 1.1.8
+Last updated: 2026-09-07 20:25 +03
 
 Marketing site for InjazApps, a mobile app studio, built with Astro and
 hand-written CSS (no Tailwind, no UI framework). The home page (`/` and
@@ -38,6 +38,20 @@ Brand rules enforced across every component:
 - The brass accent colour appears at most once per screen. `AblaqRule`
   defaults `accent` to `false`; the Header's instance is the site's single
   owner of the accent and is the only place it's explicitly turned on.
+- Brand names are never transliterated into Arabic script. "InjazApps"
+  and "OwlMD" are set in the Latin face on every locale, full stop. Mizan
+  and Sadā are the exception, not a precedent — "ميزان" and "صدى" are
+  their real Arabic names, not transliterations, so they use it on `/ar/`.
+  Where the Header or the home page's hero shows the wordmark on `/ar/`,
+  "إنجاز" appears beside it as a paired lockup element (a thin vertical
+  rule, its own `font-family: var(--font-arabic)`, weight 700 set
+  directly rather than through `--font-weight-wordmark`) — that's a
+  lockup, not a translation, and it's the only sanctioned place "إنجاز"
+  appears without "InjazApps" alongside it in Latin. Anywhere else a
+  Latin brand name sits inside Arabic running text (the footer's
+  copyright line, an app card's name, the home page's intro paragraph),
+  it's wrapped in `<bdi>` so adjacent Arabic punctuation doesn't render on
+  the wrong side.
 
 ## Components
 
@@ -197,7 +211,7 @@ network trace — no browser instrumentation was available for this pass):
 | Page   | Before (unsubsetted) | After (current subset) | Change |
 | ------ | --------------------- | ------------------------ | ------ |
 | `/`    | 45,712 B              | 18,732 B                 | −59%   |
-| `/ar/` | 152,004 B             | 36,916 B                 | −76%   |
+| `/ar/` | 152,004 B             | 36,636 B                 | −76%   |
 
 Before: `/` downloaded the unsubsetted Latin variable font (45,712 B).
 `/ar/` downloaded that same file too (it was preloaded unconditionally on

@@ -12,11 +12,16 @@ export const homeCopy: Record<Locale, Record<string, string>> = {
     howThisWasMade: 'How this was made',
   },
   ar: {
-    wordmark: 'إنجاز',
+    // "InjazApps" is a brand name and is never translated/transliterated
+    // into Arabic script — not even here in running prose. It's rendered
+    // directly in the template (wrapped in <bdi>, since it's Latin text
+    // inside Arabic running text), so this sentence starts from the word
+    // right after it.
+    wordmark: 'InjazApps',
     tagline: 'برامج مصنوعة على المقاس.',
     seeApps: 'شاهد التطبيقات',
     whatThisIs:
-      'إنجاز استوديو صغير في الكويت يبني تطبيقات موبايل مركّزة. عربي أولًا، يعمل دون اتصال حيث يهم، وبلا حسابات لا تحتاجها.',
+      'استوديو صغير في الكويت يبني تطبيقات موبايل مركّزة. عربي أولًا، يعمل دون اتصال حيث يهم، وبلا حسابات لا تحتاجها.',
     comingSoon: 'قريبًا',
     builtInKuwait: 'صُنع في الكويت.',
     howThisWasMade: 'كيف بُني هذا',

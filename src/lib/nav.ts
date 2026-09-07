@@ -18,17 +18,21 @@ export const navCopy: Record<Locale, Record<string, string>> = {
     skipToContent: 'Skip to content',
   },
   ar: {
-    home: 'إنجاز آبس',
+    // "InjazApps" is a brand name — never transliterated into Arabic
+    // script, on any locale. Mizan and Sadā are real Arabic words, so
+    // they keep their Arabic spelling here; OwlMD is not, so it stays
+    // Latin like the wordmark.
+    home: 'InjazApps',
     owlmd: 'OwlMD',
-    mizan: 'Mizan',
-    sada: 'Sada',
+    mizan: 'ميزان',
+    sada: 'صدى',
     about: 'من نحن',
     support: 'الدعم',
     legal: 'قانوني',
     terms: 'الشروط',
     privacyOwlmd: 'خصوصية OwlMD',
-    privacyMizan: 'خصوصية Mizan',
-    privacySada: 'خصوصية Sada',
+    privacyMizan: 'خصوصية ميزان',
+    privacySada: 'خصوصية صدى',
     switchLanguage: 'English',
     toggleTheme: 'تبديل المظهر',
     skipToContent: 'الانتقال إلى المحتوى',

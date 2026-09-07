@@ -21,7 +21,17 @@ const aboutHref = getRelativeLocaleUrl(locale, routes.about);
 
 <section class="hero">
   <div class="hero__content">
-    <h1 class="hero__wordmark">{t.wordmark}</h1>
+    <h1 class="hero__wordmark">
+      <span class="hero__wordmark-en">{t.wordmark}</span>
+      {
+        locale === 'ar' && (
+          <>
+            <span class="hero__wordmark-rule" aria-hidden="true" />
+            <span class="hero__wordmark-ar">إنجاز</span>
+          </>
+        )
+      }
+    </h1>
     <AblaqRule accent={false} />
     <p class="hero__tagline">{t.tagline}</p>
     <a href="#apps" class="hero__cta">{t.seeApps}</a>
@@ -30,7 +40,17 @@ const aboutHref = getRelativeLocaleUrl(locale, routes.about);
 </section>
 
 <section class="intro">
-  <p class="intro__text">{t.whatThisIs}</p>
+  <p class="intro__text">
+    {
+      locale === 'ar' ? (
+        <>
+          <bdi>InjazApps</bdi> {t.whatThisIs}
+        </>
+      ) : (
+        t.whatThisIs
+      )
+    }
+  </p>
 </section>
 
 <section id="apps" class="apps">
@@ -44,7 +64,7 @@ const aboutHref = getRelativeLocaleUrl(locale, routes.about);
             <a href={href} class="app-card__link">
               <span class="app-card__icon" aria-hidden="true" />
               <span class="app-card__name">
-                {locale === 'ar' ? app.data.nameAr : app.data.name}
+                <bdi>{locale === 'ar' ? app.data.nameAr : app.data.name}</bdi>
               </span>
               <span class="app-card__tagline">
                 {locale === 'ar' ? app.data.taglineAr : app.data.tagline}
@@ -90,9 +110,26 @@ const aboutHref = getRelativeLocaleUrl(locale, routes.about);
   }
 
   .hero__wordmark {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
     font-size: var(--text-display);
-    font-weight: var(--font-weight-wordmark);
     line-height: 1.1;
+  }
+
+  .hero__wordmark-en {
+    font-weight: var(--font-weight-wordmark);
+  }
+
+  .hero__wordmark-rule {
+    align-self: stretch;
+    inline-size: 1px;
+    background-color: var(--border-default);
+  }
+
+  .hero__wordmark-ar {
+    font-family: var(--font-arabic);
+    font-weight: 700;
   }
 
   .hero__tagline {

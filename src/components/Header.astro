@@ -22,7 +22,15 @@ const langSwitchHref = getRelativeLocaleUrl(target, path);
   <div class="site-header__inner">
     <a href={href(routes.home)} class="site-header__mark">
       <img src="/injazapps-icon-web-48r.png" width="24" height="24" alt="" />
-      <span>{t.home}</span>
+      <span class="site-header__wordmark-en">{t.home}</span>
+      {
+        locale === 'ar' && (
+          <>
+            <span class="site-header__wordmark-rule" aria-hidden="true" />
+            <span class="site-header__wordmark-ar">إنجاز</span>
+          </>
+        )
+      }
     </a>
 
     <nav class="site-header__nav" aria-label="Primary">
@@ -73,10 +81,24 @@ const langSwitchHref = getRelativeLocaleUrl(target, path);
     display: inline-flex;
     align-items: center;
     gap: var(--space-xs);
-    font-weight: var(--font-weight-wordmark);
     font-size: var(--text-base);
     text-decoration: none;
     color: var(--text-primary);
+  }
+
+  .site-header__wordmark-en {
+    font-weight: var(--font-weight-wordmark);
+  }
+
+  .site-header__wordmark-rule {
+    inline-size: 1px;
+    block-size: 1em;
+    background-color: var(--border-default);
+  }
+
+  .site-header__wordmark-ar {
+    font-family: var(--font-arabic);
+    font-weight: 700;
   }
 
   .site-header__mark img {

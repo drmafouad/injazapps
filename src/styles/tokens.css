@@ -43,9 +43,12 @@
   --font-latin: 'IBM Plex Sans Variable', system-ui, sans-serif;
   --font-arabic: 'IBM Plex Sans Arabic', var(--font-latin);
 
-  /* IBM Plex Sans Arabic ships static 400/500/700 only — no 600, which
-     would trigger faux bold and damage Arabic letter joins. Anything
-     wanting a "600-ish" emphasis weight must go through this token. */
+  /* The wordmark ("InjazApps") is always set in the Latin face, on every
+     locale — brand names are never transliterated into Arabic script.
+     600 is safe unconditionally: IBM Plex Sans Arabic's missing 600
+     weight is a non-issue here since this token never applies to Arabic
+     text. Any Arabic lockup partner (e.g. "إنجاز" beside the wordmark)
+     is a real static weight (700) set directly, not through this token. */
   --font-weight-wordmark: 600;
 
   /* Fluid type scale, five steps */
@@ -67,10 +70,4 @@
   --signal-hover: var(--violet-deep-hover);
   --on-signal: #ede4d3;
   --accent-brass: var(--cairo-brass);
-}
-
-html[lang='ar'] {
-  /* 600 isn't a real static weight in IBM Plex Sans Arabic — 700 is the
-     nearest permitted weight without faux-bolding. */
-  --font-weight-wordmark: 700;
 }
