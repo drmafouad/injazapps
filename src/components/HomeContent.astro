@@ -60,7 +60,7 @@ const aboutHref = getRelativeLocaleUrl(locale, routes.about);
         const app = allApps.find((entry) => entry.data.slug === slug)!;
         const href = getRelativeLocaleUrl(locale, routes[slug]);
         return (
-          <OffsetPanel as="article" class="app-card">
+          <OffsetPanel as="article" class={`app-card app-card--${slug}`}>
             <a href={href} class="app-card__link">
               <span class="app-card__icon" aria-hidden="true" />
               <span class="app-card__name">
@@ -181,6 +181,13 @@ const aboutHref = getRelativeLocaleUrl(locale, routes.about);
   .app-card:focus-within {
     --offset-depth: 8px;
     --offset-panel-border-color: var(--signal-default);
+  }
+
+  /* Mizan's accent is Lamp Glass Teal, not the site-wide signal colour —
+     OwlMD and Sadā keep the default treatment until their icons exist. */
+  .app-card--mizan:hover,
+  .app-card--mizan:focus-within {
+    --offset-panel-border-color: var(--accent-teal);
   }
 
   .app-card__link {

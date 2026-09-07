@@ -28,6 +28,12 @@
   --signal-hover: var(--violet-light-hover);
   --on-signal: #241b52;
   --accent-brass: var(--cairo-brass);
+  --accent-teal: var(--lamp-teal);
+  /* The literal stone materials from the About page's colour story —
+     deliberately theme-invariant (same value in both blocks below), like
+     --accent-brass: these are named colours, not light/dark UI roles. */
+  --wide-rule-light: var(--limestone);
+  --wide-rule-dark: var(--ablaq-red);
 
   /* Structural tokens */
   --offset-depth: 6px;
@@ -70,4 +76,7 @@
   --signal-hover: var(--violet-deep-hover);
   --on-signal: #ede4d3;
   --accent-brass: var(--cairo-brass);
+  --accent-teal: var(--lamp-teal);
+  --wide-rule-light: var(--limestone);
+  --wide-rule-dark: var(--ablaq-red);
 }

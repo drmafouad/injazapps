@@ -1,22 +1,27 @@
 ---
-// The signature divider: alternating hard-edged segments with exactly one
-// accent segment. Cairo Brass appears at most once per screen, and that
-// instance is owned by the Header — every other instance must default to
-// (or explicitly pass) `accent={false}`.
+// The signature divider: alternating hard-edged segments. Two variants:
+// - "default" (the usual thin rule): exactly one accent segment. Cairo
+//   Brass appears at most once per screen, owned by the Header — every
+//   other default-variant instance must default to (or explicitly pass)
+//   `accent={false}`.
+// - "wide" (large surfaces only, e.g. below a page's h1): a taller band
+//   alternating Limestone and Ablaq Red, no brass accent involved at all.
 interface Props {
   segments?: number;
   accent?: boolean;
+  variant?: 'default' | 'wide';
 }
 
-const { segments = 9, accent = false } = Astro.props;
+const { segments = 9, accent = false, variant = 'default' } = Astro.props;
 const accentIndex = Math.floor(segments / 2);
 const items = Array.from({ length: segments }, (_, i) => {
+  if (variant === 'wide') return i % 2 === 0 ? 'wide-light' : 'wide-dark';
   if (accent && i === accentIndex) return 'accent';
   return i % 2 === 0 ? 'primary' : 'muted';
 });
 ---
 
-<div class="ablaq-rule" role="separator" aria-hidden="true">
+<div class={`ablaq-rule ablaq-rule--${variant}`} role="separator" aria-hidden="true">
   {items.map((kind) => <span class={`segment segment--${kind}`}></span>)}
 </div>
 
@@ -26,6 +31,10 @@ const items = Array.from({ length: segments }, (_, i) => {
     inline-size: 100%;
     block-size: 3px;
     gap: 0;
+  }
+
+  .ablaq-rule--wide {
+    block-size: 16px;
   }
 
   .segment {
@@ -43,5 +52,13 @@ const items = Array.from({ length: segments }, (_, i) => {
 
   .segment--accent {
     background-color: var(--accent-brass);
+  }
+
+  .segment--wide-light {
+    background-color: var(--wide-rule-light);
+  }
+
+  .segment--wide-dark {
+    background-color: var(--wide-rule-dark);
   }
 </style>

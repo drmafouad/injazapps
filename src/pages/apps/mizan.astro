@@ -4,7 +4,18 @@ import OffsetPanel from '../../components/OffsetPanel.astro';
 ---
 
 <BaseLayout locale="en" path="/apps/mizan" title="Mizan — InjazApps" description="Mizan, a mobile app by InjazApps.">
+  <div class="app-header-band" aria-hidden="true"></div>
   <OffsetPanel>
     <p>Coming soon.</p>
   </OffsetPanel>
 </BaseLayout>
+
+<style>
+  /* Mizan's accent is Lamp Glass Teal — OwlMD and Sadā keep the default
+     treatment until their icons exist. */
+  .app-header-band {
+    block-size: 8px;
+    background-color: var(--accent-teal);
+    margin-block-end: var(--space-lg);
+  }
+</style>

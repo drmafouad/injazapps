@@ -1,7 +1,7 @@
 # InjazApps
 
-Version: 1.2.0
-Last updated: 2026-09-07 21:35 +03
+Version: 1.2.1
+Last updated: 2026-09-07 22:15 +03
 
 Marketing site for InjazApps, a mobile app studio, built with Astro and
 hand-written CSS (no Tailwind, no UI framework). The home page (`/` and
@@ -65,6 +65,20 @@ Brand rules enforced across every component:
     the mark itself* (the joggled joint, ablaq coursing, the colour
     palette), never to describe the studio or the people who work there.
     No other page may reference place, nationality, or ethnicity.
+- The full palette (`src/styles/tokens.css`'s raw colours) is deliberately
+  used sparingly — Ablaq Red and Lamp Glass Teal sat unused for several
+  passes before getting a real assignment:
+  - **Ablaq Red** (`--wide-rule-dark`) appears only via `AblaqRule`'s
+    `variant="wide"` — a taller band alternating Limestone/Ablaq Red,
+    permitted on large surfaces only. Its one use site-wide is below the
+    `<h1>` on `/about` and `/ar/about`. Not on the home page, not in the
+    Header.
+  - **Lamp Glass Teal** (`--accent-teal`) is Mizan's accent, and only
+    Mizan's: the home page's Mizan card border on hover/focus, and a
+    solid band at the top of the Mizan app page. OwlMD and Sadā keep the
+    default (`--signal-default`) treatment until their icons exist.
+  - **Cairo Brass** (`--accent-brass`) is unchanged: exactly once per
+    screen, owned by the Header (see above).
 
 ## Components
 
@@ -84,9 +98,7 @@ one JSON entry per app — `slug`, `name`/`nameAr`, `tagline`/`taglineAr`,
 read from it; app icons aren't produced yet, so cards render a plain
 outlined placeholder box instead of `iconPath` (which exists in the schema
 for when real icon art lands). Copy for the home page itself lives in
-`src/lib/home.ts`, alongside `src/lib/nav.ts` for nav/footer strings —
-both are scanned by the font-subsetting script (see Fonts), so add new
-copy there rather than inline in a component when it needs font coverage.
+`src/lib/home.ts`, alongside `src/lib/nav.ts` for nav/footer strings.
 
 `src/content/pages/` is a second content collection, for long-form prose
 pages (currently just `about.md` / `about.ar.md`, one file per locale —
@@ -186,71 +198,61 @@ joins, so anything wanting that emphasis goes through the
 `--font-weight-wordmark` token (`src/styles/tokens.css`): 600 under the
 Latin face, 700 under `html[lang="ar"]`.
 
-Each `@font-face` in `fonts.css` declares `unicode-range` as the exact set
-of codepoints actually embedded (not the full Unicode block) — a character
-outside that set falls through to the next font in the stack instead of
-rendering a missing-glyph box. This also keeps the Arabic face from ever
-matching Latin text (e.g. "OwlMD", "English") the way importing
+Each `@font-face` in `fonts.css` declares `unicode-range` as a **fixed
+Unicode block** — the Arabic blocks (+ Arabic-Indic digits) for Arabic,
+Latin-1 plus a handful of symbol ranges for Latin — not the exact set of
+characters used in today's copy. This also keeps the Arabic face from
+ever matching Latin text (e.g. "OwlMD", "English") the way importing
 Fontsource's combined per-weight CSS used to, which was downloading a
 second, redundant Latin subset from the Arabic package. One weight per
 locale is preloaded above the fold in `BaseLayout`.
 
-**⚠️ Subset fragility:** because `unicode-range` is pinned to the exact
-codepoints present in today's copy, any *new* character added to site copy
-(a new word, a new page, a diacritic that wasn't there before) is not in
-the subset and will silently fall back to the next font in the stack —
-usually a system font, not a missing-glyph box, so it degrades quietly
-rather than breaking, but it will look off-brand. **Whoever edits copy
-must run `npm run fonts:subset` afterward and commit the regenerated files
-in `public/fonts/` and the updated `unicode-range` values in
-`src/styles/fonts.css`.**
+**This deliberately replaced an earlier, content-scanned subsetting
+strategy that failed three times over.** That version scanned the actual
+site copy and subsetted to the exact codepoints found — and every time
+new copy used a character the scanner didn't know to look for (a new
+page, a new content file, a new component with inline text), that
+character silently fell back to a system font. For Arabic specifically,
+that failure mode is worse than it sounds: one substituted glyph mid-word
+breaks shaping (`init`/`medi`/`fina`/`rlig`) for the *entire word*, not
+just that character, since those features only fire between glyphs that
+are all present in the same face. The fix isn't a smarter scanner — it's
+subsetting by fixed block instead of by content, so it's immune to
+content drift by construction. The tradeoff is a larger download; that's
+accepted deliberately. **Re-running `npm run fonts:subset` is only
+needed if the font version changes, never because copy changed.**
 
-`npm run fonts:subset` (`scripts/subset-fonts.mjs`) regenerates those
-subsets. It requires Python fonttools on PATH
-(`pip install fonttools brotli`) to run `pyftsubset` — this is a
-developer-machine tool only; it is never run during `npm run build` and
-the Cloudflare build machine does not have Python installed. The script
-scans `src/lib/nav.ts`, `src/lib/home.ts`, every `src/content/apps/*.json`
-entry, and every `.astro` file under `src/pages` and `src/components` —
-both their text-bearing attributes (`title`, `description`, `alt`,
-`aria-label`, `placeholder`) and their rendered text content (frontmatter,
-`<script>`, and `<style>` are stripped first, since none of that is ever
-painted with the webfont) — for the character set. It then subsets via
+`npm run fonts:subset` (`scripts/subset-fonts.mjs`) regenerates the
+woff2 files from the two `LATIN_UNICODES`/`ARABIC_UNICODES` constants at
+the top of that script (kept in sync with `fonts.css`'s `unicode-range`
+values by hand — there's no scanning step to do it for you). It requires
+Python fonttools on PATH (`pip install fonttools brotli`) to run
 `pyftsubset` with `--layout-features=*` (keep every OpenType layout
-feature the source font defines), and prints the `unicode-range` values to
-paste into `fonts.css`.
+feature the source font defines) — this is a developer-machine tool
+only; it is never run during `npm run build`, and the Cloudflare build
+machine does not have Python installed.
 
 The Arabic subset was verified to retain `GSUB`/`GPOS` and the shaping
-features IBM Plex Sans Arabic actually ships — `init`, `medi`, `fina`,
-`calt`, `rlig` (GSUB) and `kern`, `mark`, `mkmk` (GPOS). The source font has
-no separate `isol` or `liga` feature (isolated forms are the default cmap
-glyphs, and lam-alef is a *required* ligature under `rlig`, not `liga`) —
-that's true of the unsubsetted font too, not something subsetting removed.
-The lam-alef ligature rule itself (medial/initial lam + final alef, for
-every alef variant in the current subset — ا, أ, إ, آ) was confirmed
-present in the subsetted glyph tables.
+features IBM Plex Sans Arabic ships — `init`, `medi`, `fina`, `calt`,
+`rlig`, `ccmp`, `locl` (GSUB) and `kern`, `mark`, `mkmk` (GPOS) — and,
+because the subset now covers the whole Arabic block rather than a
+hand-picked codepoint list, every Arabic word joins correctly regardless
+of which letters it uses. Verified visually (not just by character
+coverage) on `/ar/about`, the page with the densest Arabic prose on the
+site.
 
-**Font payload, `/` vs `/ar/`** (sum of woff2 files actually fetched, per
-the font-matching rules above; measured from file sizes, not a live
-network trace — no browser instrumentation was available for this pass):
+**Font payload, `/` vs `/ar/`** (sum of woff2 files actually fetched — a
+Latin-locale page downloads only the Latin file; an Arabic-locale page
+downloads that plus both Arabic weights, since the header's language
+switch and Latin brand names still need the Latin face):
 
-| Page   | Before (unsubsetted) | After (current subset) | Change |
-| ------ | --------------------- | ------------------------ | ------ |
-| `/`    | 45,712 B              | 18,916 B                 | −59%   |
-| `/ar/` | 152,004 B             | 37,600 B                 | −75%   |
+| Page   | Bytes      |
+| ------ | ---------- |
+| `/`    | 37,548 B   |
+| `/ar/` | 95,976 B   |
 
-Before: `/` downloaded the unsubsetted Latin variable font (45,712 B).
-`/ar/` downloaded that same file too (it was preloaded unconditionally on
-every page), plus the Arabic package's Arabic-400 subset (42,848 B), plus
-its own Latin-400 subset (19,164 B, matched ahead of the real Latin font
-for Latin text under the old unrestricted unicode-range), plus its
-Arabic-700 subset (44,280 B, matched as the nearest available weight to
-the header wordmark's requested 600). After: `/` downloads only the
-subsetted Latin file; `/ar/` downloads that plus the subsetted Arabic 400
-and 700 faces, with the redundant Arabic Latin-subset download eliminated
-by the unicode-range fix. The "after" totals grow as copy grows (they
-include the home page's text) — re-run `npm run fonts:subset` and update
-this table when that happens again.
+These totals are now constant regardless of copy — they only change if
+the font version or the `LATIN_UNICODES`/`ARABIC_UNICODES` ranges change.
 
 ## SEO
 

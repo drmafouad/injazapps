@@ -1,10 +1,10 @@
-// Regenerates the self-hosted, subsetted webfonts in public/fonts/ from the
+// Regenerates the self-hosted webfonts in public/fonts/ from the
 // Fontsource master packages. Run with: npm run fonts:subset
 //
 // Requires Python fonttools on PATH (`pip install fonttools brotli`) — this
 // is a developer-machine-only tool. It must NEVER run as part of
-// `npm run build`: the Cloudflare Pages build machine has Node and npm
-// only, no Python. Its output (public/fonts/*.woff2 and the unicode-range
+// `npm run build`: the Cloudflare build machine has Node and npm only,
+// no Python. Its output (public/fonts/*.woff2 and the unicode-range
 // values below) is committed to the repo instead.
 //
 // Why subset at all: IBM Plex Sans Arabic ships static 400/500/700 only
@@ -13,25 +13,27 @@
 // Because 'IBM Plex Sans Arabic' is listed first in --font-arabic, the
 // browser matches ITS Latin subset for any Latin text on an Arabic page
 // (e.g. "OwlMD", "English") instead of falling back to the real Latin
-// font — a duplicate, wasted download. Restricting each face's
-// unicode-range to only the codepoints actually embedded (not the whole
-// Unicode block) fixes that: unmatched characters fall through to the next
-// font in the stack instead of rendering a missing-glyph box.
+// font — a duplicate, wasted download. Restricting unicode-range fixes
+// that: unmatched characters fall through to the next font in the stack.
 //
-// Character set: scanned from src/lib/nav.ts and src/lib/home.ts (all
-// locale strings), every file under src/content/ (any collection, .json
-// or .md — a new content collection or page is picked up automatically,
-// no changes needed here), and every .astro file's own markup under
-// src/pages and src/components — both its quoted attribute values
-// (title, description, alt, aria-label, ...) and its rendered text nodes
-// (frontmatter, <script>, and <style> blocks are stripped first, since
-// none of that is ever painted with the webfont). Unioned with a small
-// fixed safety set (ASCII digits, Arabic-Indic digits ٠-٩, and common
-// punctuation). Re-run this script whenever copy changes — a new
-// character that isn't in the subset will silently fall back to the next
-// font in the stack rather than showing a missing-glyph box, so this
-// degrades safely, but re-running keeps new copy on-brand.
-import { mkdirSync, readdirSync, readFileSync, statSync } from 'node:fs';
+// SUBSET BY FIXED UNICODE BLOCK, NOT BY SCANNED TEXT. An earlier version
+// of this script scanned the actual site copy and subsetted to the exact
+// codepoints found. That failed three times over: every time new copy
+// used a character the scanner didn't know to look for (a new page, a
+// new content file, a new component), that one character silently fell
+// back to a system font — and for Arabic, a single substituted glyph in
+// a word breaks shaping for the whole word, since init/medi/fina/rlig
+// only fire between glyphs that are all present in the same face. The
+// fix isn't a smarter scanner; it's to stop keying the subset to content
+// at all. These ranges cover the Arabic and Latin-1 blocks (plus a few
+// common symbol ranges) wholesale, so any character in ordinary Arabic
+// or Latin prose is present — immune to content drift by construction,
+// at the cost of being a larger download than a hand-fitted subset.
+const LATIN_UNICODES =
+  'U+0000-00FF,U+0131,U+0152-0153,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215';
+const ARABIC_UNICODES = 'U+0600-06FF,U+0750-077F,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF,U+0660-0669';
+
+import { mkdirSync, statSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -41,107 +43,7 @@ const ROOT = join(__dirname, '..');
 const OUT_DIR = join(ROOT, 'public/fonts');
 mkdirSync(OUT_DIR, { recursive: true });
 
-const LATIN_SAFETY = `0123456789.,:;!?'"()&/-–— ©`;
-const ARABIC_SAFETY = `٠١٢٣٤٥٦٧٨٩،؛؟`;
-
-const isArabicBlock = (cp) =>
-  (cp >= 0x0600 && cp <= 0x06ff) ||
-  (cp >= 0x0750 && cp <= 0x077f) ||
-  (cp >= 0x0870 && cp <= 0x08ff) ||
-  (cp >= 0xfb50 && cp <= 0xfdff) ||
-  (cp >= 0xfe70 && cp <= 0xfeff);
-
-function walkFiles(dir, extensions, out = []) {
-  for (const entry of readdirSync(dir, { withFileTypes: true })) {
-    const p = join(dir, entry.name);
-    if (entry.isDirectory()) walkFiles(p, extensions, out);
-    else if (extensions.some((ext) => entry.name.endsWith(ext))) out.push(p);
-  }
-  return out;
-}
-
-// A content collection entry's rendered/visible text: for JSON, every
-// string value; for markdown, the body with frontmatter and heading
-// markers stripped (see src/lib/prose.ts — "# "/"## " are consumed as
-// structure, never painted as literal characters).
-function extractContentText(filePath) {
-  const raw = readFileSync(filePath, 'utf8');
-  if (filePath.endsWith('.json')) {
-    return Object.values(JSON.parse(raw))
-      .filter((v) => typeof v === 'string')
-      .join(' ');
-  }
-  return raw.replace(/^---[\s\S]*?---/, '').replace(/^#{1,6}\s+/gm, '');
-}
-
-// Attributes whose values are real rendered/announced text — not class,
-// id, href, rel, type, width, etc., which are structural, not copy.
-const TEXT_ATTRS = ['title', 'description', 'alt', 'aria-label', 'placeholder'];
-
-// Strips frontmatter/<script>/<style> (never painted with the webfont),
-// then returns the text-bearing attribute values plus tag-stripped text
-// content. JSX/template expressions are stripped brace-pair by brace-pair,
-// repeatedly, so arbitrarily nested `{...}` (e.g. a .map() with a nested
-// template literal) fully disappears rather than leaving fragments.
-function extractAstroText(content) {
-  let markup = content.replace(/^---[\s\S]*?---/, '');
-  markup = markup.replace(/<script[\s\S]*?<\/script>/gi, ' ');
-  markup = markup.replace(/<style[\s\S]*?<\/style>/gi, ' ');
-
-  const attrPattern = new RegExp(`(?:${TEXT_ATTRS.join('|')})=(?:"([^"]*)"|'([^']*)')`, 'g');
-  const attrValues = [...markup.matchAll(attrPattern)].map((m) => m[1] ?? m[2] ?? '').join(' ');
-
-  let text = markup;
-  let prev;
-  do {
-    prev = text;
-    text = text.replace(/\{[^{}]*\}/g, ' ');
-  } while (text !== prev);
-  text = text.replace(/<[^>]+>/g, ' ');
-
-  return attrValues + ' ' + text;
-}
-
-async function collectCharacters() {
-  const { navCopy } = await import('../src/lib/nav.ts');
-  const navText = Object.values(navCopy)
-    .flatMap((o) => Object.values(o))
-    .join('');
-
-  const { homeCopy } = await import('../src/lib/home.ts');
-  const homeText = Object.values(homeCopy)
-    .flatMap((o) => Object.values(o))
-    .join('');
-
-  const contentFiles = walkFiles(join(ROOT, 'src/content'), ['.json', '.md']);
-  const contentText = contentFiles.map(extractContentText).join(' ');
-
-  const astroFiles = [
-    ...walkFiles(join(ROOT, 'src/pages'), ['.astro']),
-    ...walkFiles(join(ROOT, 'src/components'), ['.astro']),
-  ];
-  const astroText = astroFiles
-    .map((f) => extractAstroText(readFileSync(f, 'utf8')))
-    .join(' ');
-
-  const all = navText + homeText + contentText + astroText + LATIN_SAFETY + ARABIC_SAFETY;
-  const unique = [...new Set([...all])].filter((c) => c === ' ' || !/\s/.test(c));
-
-  const arabic = [];
-  const latin = [];
-  for (const ch of unique) {
-    (isArabicBlock(ch.codePointAt(0)) ? arabic : latin).push(ch);
-  }
-  arabic.sort();
-  latin.sort();
-  return { latin, arabic };
-}
-
-function toUnicodesArg(chars) {
-  return chars.map((c) => 'U+' + c.codePointAt(0).toString(16).toUpperCase()).join(',');
-}
-
-function subset({ input, output, unicodes, extraArgs = [] }) {
+function subset({ input, output, unicodes }) {
   execFileSync('pyftsubset', [
     input,
     `--output-file=${output}`,
@@ -149,21 +51,13 @@ function subset({ input, output, unicodes, extraArgs = [] }) {
     '--flavor=woff2',
     '--layout-features=*',
     '--no-hinting',
-    ...extraArgs,
   ]);
   const bytes = statSync(output).size;
   console.log(`wrote ${output.replace(ROOT + '/', '')} (${bytes} bytes)`);
   return bytes;
 }
 
-async function main() {
-  const { latin, arabic } = await collectCharacters();
-  console.log(`Latin charset (${latin.length}): ${latin.join('')}`);
-  console.log(`Arabic charset (${arabic.length}): ${arabic.join('')}`);
-
-  const latinUnicodes = toUnicodesArg(latin);
-  const arabicUnicodes = toUnicodesArg(arabic);
-
+function main() {
   const latinSource = join(
     ROOT,
     'node_modules/@fontsource-variable/ibm-plex-sans/files/ibm-plex-sans-latin-wght-normal.woff2',
@@ -178,28 +72,29 @@ async function main() {
   );
 
   // Weight 500 is audited as unused across the codebase — not subsetted.
-  subset({
+  const latinBytes = subset({
     input: latinSource,
     output: join(OUT_DIR, 'ibm-plex-sans-latin-subset.woff2'),
-    unicodes: latinUnicodes,
+    unicodes: LATIN_UNICODES,
   });
-  subset({
+  const arabic400Bytes = subset({
     input: arabic400Source,
     output: join(OUT_DIR, 'ibm-plex-sans-arabic-400-subset.woff2'),
-    unicodes: arabicUnicodes,
+    unicodes: ARABIC_UNICODES,
   });
-  subset({
+  const arabic700Bytes = subset({
     input: arabic700Source,
     output: join(OUT_DIR, 'ibm-plex-sans-arabic-700-subset.woff2'),
-    unicodes: arabicUnicodes,
+    unicodes: ARABIC_UNICODES,
   });
 
-  console.log('\nUpdate the unicode-range values in src/styles/fonts.css to:');
-  console.log(`  Latin:  ${latinUnicodes}`);
-  console.log(`  Arabic: ${arabicUnicodes}`);
+  console.log('\nunicode-range values (should already match src/styles/fonts.css):');
+  console.log(`  Latin:  ${LATIN_UNICODES}`);
+  console.log(`  Arabic: ${ARABIC_UNICODES}`);
+
+  console.log('\nFont bytes downloaded:');
+  console.log(`  / (Latin only):        ${latinBytes} B`);
+  console.log(`  /ar/ (Latin + Arabic): ${latinBytes + arabic400Bytes + arabic700Bytes} B`);
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+main();

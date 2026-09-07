@@ -1,7 +1,7 @@
 {
   "name": "injazapps",
   "type": "module",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "engines": {
     "node": ">=22"
   },
@@ -13,7 +13,7 @@
     "deploy": "wrangler deploy",
     "astro": "astro",
     "icons:generate": "node scripts/generate-icons.mjs",
-    "fonts:subset": "node --experimental-strip-types scripts/subset-fonts.mjs"
+    "fonts:subset": "node scripts/subset-fonts.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",
